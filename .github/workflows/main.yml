@@ -25,11 +25,11 @@ jobs:
 
       # Шаг 3: Восстанавливаем зависимости
       - name: Restore dependencies
-        run: dotnet restore VkPhotosExtractor.sln
+        run: dotnet restore VkPhotosExtractor/VkPhotosExtractor.sln
 
       # Шаг 4: Собираем проект
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build VkPhotosExtractor/VkPhotosExtractor.sln --configuration Release --no-restore
 
       # Шаг 5: Запускаем тесты (потом добавим)
       # - name: Run tests
