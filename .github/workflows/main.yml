@@ -1,0 +1,36 @@
+name: Build Project
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1: Checkout репозитория
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Шаг 2: Устанавливаем .NET SDK (указываем нужную версию)
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'
+
+      # Шаг 3: Восстанавливаем зависимости
+      - name: Restore dependencies
+        run: dotnet restore VkPhotosExtractor/VkPhotosExtractor.sln
+
+      # Шаг 4: Собираем проект
+      - name: Build
+        run: dotnet build VkPhotosExtractor/VkPhotosExtractor.sln --configuration Release --no-restore
+
+      # Шаг 5: Запускаем тесты (потом добавим)
+      # - name: Run tests
+      #   run: dotnet test --configuration Release --no-build
