@@ -68,3 +68,6 @@ nunit-*.xml
 /dataSources.local.xml
 
 .idea
+*.user
+*.crt
+*.key
