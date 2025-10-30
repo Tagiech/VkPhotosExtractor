@@ -10,13 +10,13 @@ public static class Program
         builder.Services.AddControllers();
 
         var app = builder.Build();
-        app.MapControllers();
+        app.UseHttpsRedirection();
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-        app.UseHttpsRedirection();
+        app.MapControllers();
 
         app.Run();
     }
