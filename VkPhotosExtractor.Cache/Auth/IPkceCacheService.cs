@@ -1,4 +1,4 @@
-namespace VkPhotosExtractor.Application.Auth;
+namespace VkPhotosExtractor.Cache;
 
 public interface IPkceCacheService
 {

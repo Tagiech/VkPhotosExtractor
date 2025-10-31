@@ -4,8 +4,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Configurations;
+using VkPhotosExtractor.Integration.VkAuth.Services;
 
 namespace VkPhotosExtractor.Web.Controllers;
 
@@ -13,12 +13,12 @@ namespace VkPhotosExtractor.Web.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IVkAuthService _vkAuthService;
     private readonly IConfigurationsProvider _configurationsProvider;
     
-    public AuthController(IAuthService authService, IConfigurationsProvider configurationsProvider)
+    public AuthController(IVkAuthService vkAuthService, IConfigurationsProvider configurationsProvider)
     {
-        _authService = authService;
+        _vkAuthService = vkAuthService;
         _configurationsProvider = configurationsProvider;
     }
 
@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
-        var authQueryParams = _authService.GetVkAuthQueryParams(redirectUrl);
+        var authQueryParams = _vkAuthService.GetVkAuthQueryParams(redirectUrl);
 
         return Ok(authQueryParams);
     }
@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
             return BadRequest("Missing required query parameters");
         }
 
-        var authProcessExists = _authService.CheckIfAuthProcessExists(state);
+        var authProcessExists = _vkAuthService.CheckIfAuthProcessExists(state);
         if (!authProcessExists)
         {
             return BadRequest("Invalid or expired state");
@@ -65,7 +65,7 @@ public class AuthController : ControllerBase
             return StatusCode(500, "Failed to generate redirect URL");
         }
 
-        var vkAuthResponse = await _authService.ObtainAccessToken(state, code, deviceId, redirectUrl);
+        var vkAuthResponse = await _vkAuthService.ObtainAccessToken(state, code, deviceId, redirectUrl);
         if (vkAuthResponse is null)
         {
             return StatusCode(500, "Failed to obtain access token");

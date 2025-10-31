@@ -1,6 +1,6 @@
-namespace VkPhotosExtractor.Application.Auth.Models;
+namespace VkPhotosExtractor.Integration.VkAuth.Models;
 
-public class VkAuthParams
+public class VkAuthRequest
 {
     public string BaseUrl { get; init; }
     public string Endpoint { get; init; }
@@ -14,7 +14,7 @@ public class VkAuthParams
     public VkLangId? LangId { get; init; }
     public VkAuthScheme? Scheme { get; init; }
 
-    public VkAuthParams(string baseUrl,
+    public VkAuthRequest(string baseUrl,
         string endpoint,
         string responseType,
         int clientId,

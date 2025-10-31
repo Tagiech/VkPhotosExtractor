@@ -1,11 +1,12 @@
-using System.Text;
 using System.Security.Cryptography;
-using VkPhotosExtractor.Application.Auth.Models;
+using System.Text;
 using VkPhotosExtractor.Application.Configurations;
+using VkPhotosExtractor.Cache;
+using VkPhotosExtractor.Integration.VkAuth.Models;
 
-namespace VkPhotosExtractor.Application.Auth;
+namespace VkPhotosExtractor.Integration.VkAuth.Services;
 
-public class AuthService : IAuthService
+public class VkAuthService : IVkAuthService
 {    
     private const int StateLength = 32;
     private const int PkceLength = 64;
@@ -17,7 +18,7 @@ public class AuthService : IAuthService
     private readonly int _vkAppId;
     private readonly IPkceCacheService _pkceCacheService;
 
-    public AuthService(IConfigurationsProvider configurationsProvider, IPkceCacheService pkceCacheService)
+    public VkAuthService(IConfigurationsProvider configurationsProvider, IPkceCacheService pkceCacheService)
     {
         var vkAppId = configurationsProvider.GetVkAppId();
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(vkAppId);
@@ -25,7 +26,7 @@ public class AuthService : IAuthService
         _pkceCacheService = pkceCacheService;
     }
 
-    public VkAuthParams GetVkAuthQueryParams(string redirectUrl)
+    public VkAuthRequest GetVkAuthQueryParams(string redirectUrl)
     {
         var state = GenerateRandomString(StateLength);
         var pkce = GeneratePkcePair();
@@ -33,7 +34,7 @@ public class AuthService : IAuthService
         
         _pkceCacheService.Store(state, pkce.codeVerifier);
         
-        return new VkAuthParams(VkAuthBaseUrl,
+        return new VkAuthRequest(VkAuthBaseUrl,
             VkAuthEndpoint,
             "code",
             _vkAppId,

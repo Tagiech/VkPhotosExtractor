@@ -1,4 +1,4 @@
-namespace VkPhotosExtractor.Application.Auth.Models;
+namespace VkPhotosExtractor.Integration.VkAuth.Models;
 
 /// <summary>
 /// VK permissions page theme scheme.

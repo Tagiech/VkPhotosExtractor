@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\VkPhotosExtractor.Application\VkPhotosExtractor.Application.csproj" />
+      <ProjectReference Include="..\VkPhotosExtractor.Integration\VkPhotosExtractor.Integration.csproj" />
     </ItemGroup>
 
 </Project>

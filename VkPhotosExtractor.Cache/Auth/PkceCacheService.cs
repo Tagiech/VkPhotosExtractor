@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 
-namespace VkPhotosExtractor.Application.Auth;
+namespace VkPhotosExtractor.Cache;
 
 public class PkceCacheService : IPkceCacheService
 {
