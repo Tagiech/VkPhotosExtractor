@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkPhotosExtractor.Web", "VkPhotosExtractor.Web\VkPhotosExtractor.Web.csproj", "{D6CF356E-B942-4D94-BE40-FFBDC56BB564}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkPhotosExtractor.Application", "VkPhotosExtractor.Application\VkPhotosExtractor.Application.csproj", "{9FC30BCE-377D-47B0-86FD-337A822AD467}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkPhotosExtractor.Integration", "VkPhotosExtractor.Integration\VkPhotosExtractor.Integration.csproj", "{CEA7DDD1-95A8-4172-B2DC-EAA0FC135EE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkPhotosExtractor.Cache", "VkPhotosExtractor.Cache\VkPhotosExtractor.Cache.csproj", "{4CA1B69E-107C-4E78-894C-4335C4EC69B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +18,17 @@ Global
 		{D6CF356E-B942-4D94-BE40-FFBDC56BB564}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6CF356E-B942-4D94-BE40-FFBDC56BB564}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6CF356E-B942-4D94-BE40-FFBDC56BB564}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FC30BCE-377D-47B0-86FD-337A822AD467}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FC30BCE-377D-47B0-86FD-337A822AD467}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FC30BCE-377D-47B0-86FD-337A822AD467}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FC30BCE-377D-47B0-86FD-337A822AD467}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEA7DDD1-95A8-4172-B2DC-EAA0FC135EE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEA7DDD1-95A8-4172-B2DC-EAA0FC135EE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEA7DDD1-95A8-4172-B2DC-EAA0FC135EE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEA7DDD1-95A8-4172-B2DC-EAA0FC135EE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CA1B69E-107C-4E78-894C-4335C4EC69B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CA1B69E-107C-4E78-894C-4335C4EC69B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CA1B69E-107C-4E78-894C-4335C4EC69B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CA1B69E-107C-4E78-894C-4335C4EC69B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
