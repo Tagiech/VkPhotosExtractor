@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using VkPhotosExtractor.Application.Configurations;
+// ReSharper disable ConvertIfStatementToReturnStatement
 
 namespace VkPhotosExtractor.Web.Configs;
 
@@ -14,10 +15,46 @@ public class ConfigurationsProvider : IConfigurationsProvider
         _jwtConfig = jwtConfig;
     }
 
-    public int GetVkAppId() => _vkConfig.Value.AppId;
-    
-    public string GetJwtKey() => _jwtConfig.Value.Key;
-    public string GetJwtIssuer() => _jwtConfig.Value.Issuer;
-    public string GetJwtAudience() => _jwtConfig.Value.Audience;
-    
+    public int GetVkAppId()
+    {
+        var vkAppId = _vkConfig.Value.AppId;
+        if (vkAppId is null or <= 0)
+        {
+            throw new ArgumentNullException(nameof(vkAppId), "VK App ID is not configured properly.");
+        }
+
+        return vkAppId.Value;
+    }
+    public string GetJwtKey()
+    {
+        var jwtKey =  _jwtConfig.Value.Key;
+        if (string.IsNullOrEmpty(jwtKey))
+        {
+            throw new ArgumentNullException(nameof(jwtKey), "JWT Key is not configured properly.");
+        }
+
+        return jwtKey;
+    }
+
+    public string GetJwtIssuer()
+    {
+        var jwtIssuer = _jwtConfig.Value.Issuer;
+        if (string.IsNullOrEmpty(jwtIssuer))
+        {
+            throw new ArgumentNullException(nameof(jwtIssuer), "JWT Issuer is not configured properly.");
+        }
+
+        return jwtIssuer;
+    }
+
+    public string GetJwtAudience()
+    {
+        var jwtAudience = _jwtConfig.Value.Audience;
+        if (string.IsNullOrEmpty(jwtAudience))
+        {
+            throw new ArgumentNullException(nameof(jwtAudience), "JWT Audience is not configured properly.");
+        }
+        
+        return jwtAudience;
+    }
 }

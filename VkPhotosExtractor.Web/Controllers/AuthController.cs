@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Integration.VkAuth.Services;
+using VkPhotosExtractor.Web.Controllers.Models;
 
 namespace VkPhotosExtractor.Web.Controllers;
 
@@ -38,74 +39,43 @@ public class AuthController : ControllerBase
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
-        var authQueryParams = _vkAuthService.GetVkAuthQueryParams(redirectUrl);
+        var vkAuthRequest = _vkAuthService.CreateVkAuthRequest(redirectUrl);
 
-        return Ok(authQueryParams);
+        return Ok(vkAuthRequest);
     }
 
     [HttpGet("callback")]
-    public async Task<IActionResult> AuthCallback([FromQuery] string code,
-        [FromQuery(Name = "device_id")] string deviceId,
-        [FromQuery] string state)
+    public async Task<IActionResult> AuthCallback([FromQuery] AuthCallbackRequest request)
     {
-        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state) || string.IsNullOrEmpty(deviceId))
+        if (string.IsNullOrEmpty(request.Code) 
+            || string.IsNullOrEmpty(request.State) 
+            || string.IsNullOrEmpty(request.DeviceId))
         {
             return BadRequest("Missing required query parameters");
         }
-
-        var authProcessExists = _vkAuthService.CheckIfAuthProcessExists(state);
-        if (!authProcessExists)
-        {
-            return BadRequest("Invalid or expired state");
-        }
         
-        var redirectUrl = Url.Action("AuthCallback", "Auth", null, Request.Scheme, Request.Host.ToString());
+        var redirectUrl = Url.Action("AuthCallback", 
+            "Auth",
+            null, 
+            Request.Scheme,
+            Request.Host.ToString());
         if (redirectUrl is null)
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
 
-        var vkAuthResponse = await _vkAuthService.ObtainAccessToken(state, code, deviceId, redirectUrl);
+        var vkAuthResponse = await _vkAuthService.ObtainAccessToken(request.State,
+            request.Code,
+            request.DeviceId,
+            redirectUrl);
         if (vkAuthResponse is null)
         {
             return StatusCode(500, "Failed to obtain access token");
         }
-        
-        
-        /// Создаём наш JWT (внутренний токен)
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, vkAuthResponse.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
 
-        };
+        CreateJwtToken(vkAuthResponse.UserId.ToString(), vkAuthResponse.ExpiresIn);
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configurationsProvider.GetJwtKey()));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var expires = DateTime.UtcNow.AddSeconds(vkAuthResponse.ExpiresIn);
-
-        var token = new JwtSecurityToken(
-            issuer: _configurationsProvider.GetJwtIssuer(),
-            audience: _configurationsProvider.GetJwtAudience(),
-            claims: claims,
-            expires: expires,
-            signingCredentials: creds
-        );
-
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-        // Сохраняем токен в HttpOnly cookie
-        Response.Cookies.Append("jwt", tokenString, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = expires
-        });
-
-        return Ok(new { token = tokenString });
+        return Ok();
     }
 
     // Пример защищённого эндпоинта
@@ -116,5 +86,38 @@ public class AuthController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var deviceId = User.FindFirstValue("device_id");
         return Ok(new { user_id = userId, device_id = deviceId });
+    }
+    
+    private void CreateJwtToken(string userId, TimeSpan expiresIn)
+    {
+        var utcNowOffset = DateTimeOffset.UtcNow;
+        Claim[] claims =
+        [
+            new(JwtRegisteredClaimNames.Sub, userId),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Iat, utcNowOffset.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+        ];
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configurationsProvider.GetJwtKey()));
+        var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var tokenExpirationAt = DateTime.UtcNow.Add(expiresIn);
+
+        var token = new JwtSecurityToken(
+            issuer: _configurationsProvider.GetJwtIssuer(),
+            audience: _configurationsProvider.GetJwtAudience(),
+            claims: claims,
+            expires: tokenExpirationAt,
+            signingCredentials: signingCredentials
+        );
+
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        Response.Cookies.Append("jwt", tokenString, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = tokenExpirationAt
+        });
     }
 }

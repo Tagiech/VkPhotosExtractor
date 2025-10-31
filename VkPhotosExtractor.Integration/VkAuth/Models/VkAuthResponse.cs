@@ -6,7 +6,7 @@ public class VkAuthResponse
     public string RefreshToken { get; init; }
     public string IdToken { get; init; }
     public string TokenType { get; init; }
-    public int ExpiresIn { get; init; }
+    public TimeSpan ExpiresIn { get; init; }
     public int UserId { get; init; }
     public string State { get; init; }
     public string[] Scope { get; init; }
@@ -15,7 +15,7 @@ public class VkAuthResponse
         string refreshToken,
         string idToken,
         string tokenType,
-        int expiresIn,
+        TimeSpan expiresIn,
         int userId,
         string state,
         string[] scope)

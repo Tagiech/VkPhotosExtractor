@@ -1,8 +1,9 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Configurations;
-using VkPhotosExtractor.Cache;
+using VkPhotosExtractor.Cache.Auth;
 using VkPhotosExtractor.Integration.VkAuth.Services;
 using VkPhotosExtractor.Web.Configs;
 using VkPhotosExtractor.Web.Middlewares;
@@ -16,7 +17,11 @@ public static class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddAppSettings(builder.Configuration);
 
-        var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>()!;
+        var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
+        if (jwtConfig?.Key is null)
+        {
+            throw new ArgumentNullException(nameof(jwtConfig), "JWT configuration section is missing or invalid.");
+        }
         builder.Services
             .AddAuthentication(options =>
             {
@@ -75,9 +80,13 @@ public static class Program
     }
 
     private static void AddServices(this IServiceCollection services)
-    {
-        services.AddSingleton<IPkceCacheService, PkceCacheService>();
+    {        
         services.AddSingleton<IConfigurationsProvider, ConfigurationsProvider>();
+
+        services.AddSingleton<ISecurityStringCacheService, SecurityStringCacheService>();
+        
+        services.AddSingleton<ISecurityStringProvider, SecurityStringProvider>();
+        
         services.AddSingleton<IVkAuthService, VkAuthService>();
     }
 }
