@@ -1,10 +1,12 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth;
+using VkPhotosExtractor.Application.Cache;
 using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Cache.Auth;
-using VkPhotosExtractor.Integration.VkAuth.Services;
+using VkPhotosExtractor.Integration.VkClient;
 using VkPhotosExtractor.Web.Configs;
 using VkPhotosExtractor.Web.Middlewares;
 
@@ -86,7 +88,8 @@ public static class Program
         services.AddSingleton<ISecurityStringCacheService, SecurityStringCacheService>();
         
         services.AddSingleton<ISecurityStringProvider, SecurityStringProvider>();
-        
         services.AddSingleton<IVkAuthService, VkAuthService>();
+
+        services.AddSingleton<IVkApiClient, VkApiClient>();
     }
 }

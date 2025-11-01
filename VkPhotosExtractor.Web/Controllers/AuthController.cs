@@ -4,8 +4,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Configurations;
-using VkPhotosExtractor.Integration.VkAuth.Services;
 using VkPhotosExtractor.Web.Controllers.Models;
 
 namespace VkPhotosExtractor.Web.Controllers;

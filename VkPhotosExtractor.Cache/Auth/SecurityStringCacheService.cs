@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using VkPhotosExtractor.Application.Cache;
 
 namespace VkPhotosExtractor.Cache.Auth;
 

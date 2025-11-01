@@ -1,4 +1,4 @@
-namespace VkPhotosExtractor.Integration.VkAuth.Models;
+namespace VkPhotosExtractor.Application.Auth.Models;
 
 public enum VkLangId
 {

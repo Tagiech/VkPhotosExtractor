@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using VkPhotosExtractor.Cache.Auth;
+using VkPhotosExtractor.Application.Cache;
 
 namespace VkPhotosExtractor.Application.Auth;
 

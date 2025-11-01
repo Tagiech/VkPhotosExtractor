@@ -1,8 +1,7 @@
-using VkPhotosExtractor.Application.Auth;
+using VkPhotosExtractor.Application.Auth.Models;
 using VkPhotosExtractor.Application.Configurations;
-using VkPhotosExtractor.Integration.VkAuth.Models;
 
-namespace VkPhotosExtractor.Integration.VkAuth.Services;
+namespace VkPhotosExtractor.Application.Auth;
 
 public class VkAuthService : IVkAuthService
 {    

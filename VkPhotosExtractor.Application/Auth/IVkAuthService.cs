@@ -1,10 +1,9 @@
-using VkPhotosExtractor.Integration.VkAuth.Models;
+using VkPhotosExtractor.Application.Auth.Models;
 
-namespace VkPhotosExtractor.Integration.VkAuth.Services;
+namespace VkPhotosExtractor.Application.Auth;
 
 public interface IVkAuthService
 {
-    
     VkAuthRequest CreateVkAuthRequest(string redirectUrl);
     Task<VkAuthResponse?> ObtainAccessToken(string state, string code, string deviceId, string redirectUrl);
 }

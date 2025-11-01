@@ -1,4 +1,4 @@
-namespace VkPhotosExtractor.Cache.Auth;
+namespace VkPhotosExtractor.Application.Cache;
 
 public interface ISecurityStringCacheService
 {
