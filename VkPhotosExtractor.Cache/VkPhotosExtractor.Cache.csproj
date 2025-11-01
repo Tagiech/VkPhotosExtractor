@@ -14,4 +14,8 @@
       <Folder Include="Users\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\VkPhotosExtractor.Application\VkPhotosExtractor.Application.csproj" />
+    </ItemGroup>
+
 </Project>
