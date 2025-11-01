@@ -66,6 +66,7 @@ public static class Program
             app.UseSwaggerUI();
         }
         app.UseHttpsRedirection();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<JwtCookieMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();
