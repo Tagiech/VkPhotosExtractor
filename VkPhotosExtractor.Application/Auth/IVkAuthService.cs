@@ -4,6 +4,6 @@ namespace VkPhotosExtractor.Application.Auth;
 
 public interface IVkAuthService
 {
-    VkAuthRequest CreateVkAuthRequest(string redirectUrl);
+    VkStartAuthRequest CreateVkAuthRequest(string redirectUrl);
     Task<VkAuthResponse?> ObtainAccessToken(string state, string code, string deviceId, string redirectUrl);
 }

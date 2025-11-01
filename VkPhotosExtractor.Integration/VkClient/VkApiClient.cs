@@ -6,6 +6,8 @@ namespace VkPhotosExtractor.Integration.VkClient;
 
 public class VkApiClient : IVkApiClient
 {
+    private const string VkAuthBaseUrl = "https://id.vk.ru/";
+    private const string VkAuthEndpoint = "authorize";
     private const string TokenEndpoint = "oauth2/auth";
     
     private readonly IHttpClientFactory _httpClientFactory;
@@ -13,6 +15,20 @@ public class VkApiClient : IVkApiClient
     public VkApiClient(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
+    }
+
+
+    public VkStartAuthRequest CreateVkAuthRequest(int vkAppId, string state, string codeChallenge, Uri returnUri)
+    {
+        return new VkStartAuthRequest(VkAuthBaseUrl,
+            VkAuthEndpoint,
+            "code",
+            vkAppId,
+            codeChallenge,
+            "S256",
+            returnUri,
+            state,
+            ["vkid.personal_info"]);
     }
 
     public async Task<VkAuthResponse> ExchangeForAccessToken(string grantType, string code, string codeVerifier, int clientId, string deviceId,

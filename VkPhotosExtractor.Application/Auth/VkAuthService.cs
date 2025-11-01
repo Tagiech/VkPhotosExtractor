@@ -7,36 +7,27 @@ public class VkAuthService : IVkAuthService
 {    
     private const int StateLength = 32;
     private const int PkceLength = 64;
-    private const string VkAuthBaseUrl = "https://id.vk.ru/";
-    private const string VkAuthEndpoint = "authorize";
 
+    private readonly IVkApiClient _vkApiClient;
     private readonly IConfigurationsProvider _configurationsProvider;
     private readonly ISecurityStringProvider _securityStringProvider;
 
-    public VkAuthService(IConfigurationsProvider configurationsProvider, ISecurityStringProvider securityStringProvider)
-    {
+    public VkAuthService(IVkApiClient vkApiClient, IConfigurationsProvider configurationsProvider, ISecurityStringProvider securityStringProvider)
+    {        
+        _vkApiClient = vkApiClient;
         _configurationsProvider = configurationsProvider;
         _securityStringProvider = securityStringProvider;
     }
 
-    public VkAuthRequest CreateVkAuthRequest(string redirectUrl)
+    public VkStartAuthRequest CreateVkAuthRequest(string redirectUrl)
     {
-        var vkAppId = _configurationsProvider.GetVkAppId();
-        
-        var (state, codeChallenge) = _securityStringProvider.GenerateSecurityStrings(StateLength, PkceLength);
         var returnUri = new Uri(redirectUrl);
+        var vkAppId = _configurationsProvider.GetVkAppId();
+        var (state, codeChallenge) = _securityStringProvider.GenerateSecurityStrings(StateLength, PkceLength);
         
-        return new VkAuthRequest(VkAuthBaseUrl,
-            VkAuthEndpoint,
-            "code",
-            vkAppId,
-            codeChallenge,
-            "S256",
-            returnUri,
-            state,
-            ["vkid.personal_info"],
-            VkLangId.RUS,
-            VkAuthScheme.Light);
+        var startAuthRequest = _vkApiClient.CreateVkAuthRequest(vkAppId, state, codeChallenge, returnUri);
+
+        return startAuthRequest;
 
     }
 
