@@ -37,7 +37,7 @@ public class SecurityStringProvider : ISecurityStringProvider
     public string? GetCodeVerifier(string state) => 
         _securityStringCacheService.TryGetValue(state, out var codeVerifier) ? codeVerifier : null;
 
-    public void ClearCodeVerifier(string state) => 
+    public void ClearStateAndCodeVerifier(string state) => 
         _securityStringCacheService.Invalidate(state);
 
     private (string codeVerifier, string codeChallenge) GeneratePkcePair(int length)

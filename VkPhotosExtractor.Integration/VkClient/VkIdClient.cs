@@ -42,8 +42,6 @@ public class VkIdClient : IVkIdClient
 
     public async Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct)
     {
-      
-
         var parameters = new[]
         {
             new KeyValuePair<string, string>("grant_type", AuthGrantType),
@@ -72,8 +70,6 @@ public class VkIdClient : IVkIdClient
 
     public async Task<RefreshTokenResponse> RefreshAccessToken(RefreshTokenRequest request, CancellationToken ct)
     {
-        using var client = _httpClientFactory.CreateClient("vkid");
-
         var parameters = new[]
         {
             new KeyValuePair<string, string>("grant_type", RefreshGrantType),
@@ -101,8 +97,6 @@ public class VkIdClient : IVkIdClient
 
     public async Task<bool> RevokeAccessToken(string accessToken, int clientId, CancellationToken ct)
     {
-        using var client = _httpClientFactory.CreateClient("vkid");
-
         var parameters = new[]
         {
             new KeyValuePair<string, string>("access_token", accessToken),
@@ -125,8 +119,6 @@ public class VkIdClient : IVkIdClient
 
     public async Task<bool> Logout(string accessToken, int clientId, CancellationToken ct)
     {
-        using var client = _httpClientFactory.CreateClient("vkid");
-
         var parameters = new[]
         {
             new KeyValuePair<string, string>("access_token", accessToken),

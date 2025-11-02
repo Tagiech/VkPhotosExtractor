@@ -59,7 +59,8 @@ public class AuthService : IAuthService
             authResponse.IdToken,
             DateTime.UtcNow.Add(authResponse.ExpiresIn));
         
-        _userCacheService.SaveUser(user);
+        _userCacheService.CreateOrUpdate(user);
+        _securityStringProvider.ClearStateAndCodeVerifier(usedState);
 
         return (user.Id, user.TokenExpiresAt);
     }

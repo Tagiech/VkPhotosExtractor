@@ -14,7 +14,7 @@ public class UserCacheService : IUserCacheService
         _memoryCache = memoryCache;
     }
 
-    public void SaveUser(User user)
+    public void CreateOrUpdate(User user)
     {
         _memoryCache.Set(CachePrefix + user.Id, user, new MemoryCacheEntryOptions
         {
@@ -22,18 +22,13 @@ public class UserCacheService : IUserCacheService
         });
     }
 
-    public void UpdateUser(User user)
-    {
-        throw new NotImplementedException();
-    }
-
     public bool TryGetUser(Guid userId, out User? user)
     {
-        throw new NotImplementedException();
+        return _memoryCache.TryGetValue(CachePrefix + userId, out user);
     }
 
     public void InvalidateUser(Guid userId)
     {
-        throw new NotImplementedException();
+        _memoryCache.Remove(CachePrefix + userId);
     }
 }
