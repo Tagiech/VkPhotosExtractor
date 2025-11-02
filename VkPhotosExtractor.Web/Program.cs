@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Cache;
@@ -47,11 +48,16 @@ public static class Program
             });
 
         builder.Services.AddAuthorization();
-        builder.Services.AddHttpClient("vk", c =>
+        builder.Services.AddHttpClient("vkid", c =>
         {
             c.BaseAddress = new Uri("https://id.vk.ru/");
             c.DefaultRequestHeaders.Add("Accept", "application/json");
-        });
+        })
+            .AddPolicyHandler(Policy
+                .Handle<HttpRequestException>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
+            
         
         builder.Services.AddMemoryCache();
         builder.Services.AddServices();
@@ -89,8 +95,8 @@ public static class Program
         services.AddSingleton<ISecurityStringCacheService, SecurityStringCacheService>();
         
         services.AddSingleton<ISecurityStringProvider, SecurityStringProvider>();
-        services.AddSingleton<IVkAuthService, VkAuthService>();
+        services.AddSingleton<IAuthService, AuthService>();
 
-        services.AddSingleton<IVkApiClient, VkApiClient>();
+        services.AddSingleton<IVkIdClient, VkIdClient>();
     }
 }

@@ -14,23 +14,15 @@ namespace VkPhotosExtractor.Web.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IVkAuthService _vkAuthService;
+    private readonly IAuthService _authService;
     private readonly IConfigurationsProvider _configurationsProvider;
     
-    public AuthController(IVkAuthService vkAuthService, IConfigurationsProvider configurationsProvider)
+    public AuthController(IAuthService authService, IConfigurationsProvider configurationsProvider)
     {
-        _vkAuthService = vkAuthService;
+        _authService = authService;
         _configurationsProvider = configurationsProvider;
     }
 
-    //https://id.vk.ru/authorize?
-    //response_type=code&
-    //client_id=12345&
-    //scope=email%20phone&
-    //redirect_uri=https%3A%2F%2Fyour.site&
-    //state=XXXRandomZZZ&
-    //code_challenge=K8KAyQ82WSEncryptedVerifierGYUDj8K&
-    //code_challenge_method=S256
     [HttpGet("params")]
     public IActionResult GetAuthUri()
     {
@@ -39,13 +31,13 @@ public class AuthController : ControllerBase
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
-        var vkAuthRequest = _vkAuthService.CreateVkAuthRequest(redirectUrl);
+        var vkAuthRequest = _authService.CreateVkAuthRequest(redirectUrl);
 
         return Ok(vkAuthRequest);
     }
 
     [HttpGet("callback")]
-    public async Task<IActionResult> AuthCallback([FromQuery] AuthCallbackRequest request)
+    public async Task<IActionResult> AuthCallback([FromQuery] AuthCallbackRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(request.Code) 
             || string.IsNullOrEmpty(request.State) 
@@ -64,14 +56,11 @@ public class AuthController : ControllerBase
             return StatusCode(500, "Failed to generate redirect URL");
         }
 
-        var vkAuthResponse = await _vkAuthService.ObtainAccessToken(request.State,
+        var vkAuthResponse = await _authService.ObtainAccessToken(request.State,
             request.Code,
             request.DeviceId,
-            redirectUrl);
-        if (vkAuthResponse is null)
-        {
-            return StatusCode(500, "Failed to obtain access token");
-        }
+            redirectUrl,
+            ct);
 
         CreateJwtToken(vkAuthResponse.UserId.ToString(), vkAuthResponse.ExpiresIn);
 

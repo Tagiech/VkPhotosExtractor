@@ -1,6 +1,6 @@
 namespace VkPhotosExtractor.Application.Auth.Models;
 
-public class VkStartAuthRequest
+public class StartAuthResponse
 {
     public string BaseUrl { get; init; }
     public string Endpoint { get; init; }
@@ -12,7 +12,7 @@ public class VkStartAuthRequest
     public string State { get; init; }
     public string[]? Scope { get; init; }
 
-    public VkStartAuthRequest(string baseUrl,
+    public StartAuthResponse(string baseUrl,
         string endpoint,
         string responseType,
         int clientId,
