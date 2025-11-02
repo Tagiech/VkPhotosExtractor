@@ -33,11 +33,11 @@ public class ExceptionHandlingMiddleware
         {
             case ApplicationException<InnerErrorCode> innerEx:
                 await WriteErrorResponse(context, innerEx.StatusCode, innerEx.ErrorCode.ToString(),
-                    innerEx.Message, traceId);
+                    $"Internal application error: {innerEx.Message}", traceId);
                 break;
             case ApplicationException<ExternalErrorCode> externalEx:
                 await WriteErrorResponse(context, externalEx.StatusCode, externalEx.ErrorCode.ToString(),
-                    externalEx.Message, traceId);
+                    $"External application failed with error: {externalEx.Message}", traceId);
                 break;
             default:
                 await WriteErrorResponse(context, StatusCodes.Status500InternalServerError, 
