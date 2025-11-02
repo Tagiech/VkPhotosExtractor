@@ -56,13 +56,19 @@ public class AuthController : ControllerBase
             return StatusCode(500, "Failed to generate redirect URL");
         }
 
-        var vkAuthResponse = await _authService.ObtainAccessToken(request.State,
+        var userWithTokenExpiration = await _authService.ObtainAccessToken(request.State,
             request.Code,
             request.DeviceId,
             redirectUrl,
             ct);
+        
+        if (userWithTokenExpiration is null)
+        {
+            return Unauthorized("Something went wrong during VK authentication");
+        }
+        var (userId, tokenExpiresAt) = userWithTokenExpiration.Value;
 
-        CreateJwtToken(vkAuthResponse.UserId.ToString(), vkAuthResponse.ExpiresIn);
+        CreateJwtToken(userId.ToString(), tokenExpiresAt);
 
         return Ok();
     }
@@ -77,7 +83,7 @@ public class AuthController : ControllerBase
         return Ok(new { user_id = userId, device_id = deviceId });
     }
     
-    private void CreateJwtToken(string userId, TimeSpan expiresIn)
+    private void CreateJwtToken(string userId, DateTime expiresAt)
     {
         var utcNowOffset = DateTimeOffset.UtcNow;
         Claim[] claims =
@@ -89,13 +95,12 @@ public class AuthController : ControllerBase
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configurationsProvider.GetJwtKey()));
         var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-        var tokenExpirationAt = DateTime.UtcNow.Add(expiresIn);
 
         var token = new JwtSecurityToken(
             issuer: _configurationsProvider.GetJwtIssuer(),
             audience: _configurationsProvider.GetJwtAudience(),
             claims: claims,
-            expires: tokenExpirationAt,
+            expires: expiresAt,
             signingCredentials: signingCredentials
         );
 
@@ -106,7 +111,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = tokenExpirationAt
+            Expires = expiresAt
         });
     }
 }

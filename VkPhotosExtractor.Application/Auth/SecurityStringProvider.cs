@@ -14,6 +14,14 @@ public class SecurityStringProvider : ISecurityStringProvider
     {
         _securityStringCacheService = securityStringCacheService;
     }
+    
+    public string GenerateRandomString(int length)
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[length];
+        rng.GetBytes(bytes);
+        return new string(bytes.Select(b => AvailableForEncodeChars[b % AvailableForEncodeChars.Length]).ToArray());
+    }
 
     public (string state, string codeChallenge) GenerateSecurityStrings(int stateLength, int codeChallengeLength)
     {
@@ -32,15 +40,7 @@ public class SecurityStringProvider : ISecurityStringProvider
     public void ClearCodeVerifier(string state) => 
         _securityStringCacheService.Invalidate(state);
 
-    private static string GenerateRandomString(int length)
-    {
-        using var rng = RandomNumberGenerator.Create();
-        var bytes = new byte[length];
-        rng.GetBytes(bytes);
-        return new string(bytes.Select(b => AvailableForEncodeChars[b % AvailableForEncodeChars.Length]).ToArray());
-    }
-
-    private static (string codeVerifier, string codeChallenge) GeneratePkcePair(int length)
+    private (string codeVerifier, string codeChallenge) GeneratePkcePair(int length)
     {
         var codeVerifier = GenerateRandomString(length);
 

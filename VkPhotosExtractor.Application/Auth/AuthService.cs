@@ -1,4 +1,5 @@
 using VkPhotosExtractor.Application.Auth.Models;
+using VkPhotosExtractor.Application.Cache;
 using VkPhotosExtractor.Application.Configurations;
 
 namespace VkPhotosExtractor.Application.Auth;
@@ -11,12 +12,14 @@ public class AuthService : IAuthService
     private readonly IVkIdClient _vkIdClient;
     private readonly IConfigurationsProvider _configurationsProvider;
     private readonly ISecurityStringProvider _securityStringProvider;
+    private readonly IUserCacheService _userCacheService;
 
-    public AuthService(IVkIdClient vkIdClient, IConfigurationsProvider configurationsProvider, ISecurityStringProvider securityStringProvider)
+    public AuthService(IVkIdClient vkIdClient, IConfigurationsProvider configurationsProvider, ISecurityStringProvider securityStringProvider, IUserCacheService userCacheService)
     {        
         _vkIdClient = vkIdClient;
         _configurationsProvider = configurationsProvider;
         _securityStringProvider = securityStringProvider;
+        _userCacheService = userCacheService;
     }
 
     public StartAuthResponse CreateVkAuthRequest(string redirectUrl)
@@ -33,9 +36,31 @@ public class AuthService : IAuthService
 
     }
 
-    public Task<AuthResponse> ObtainAccessToken(string state, string code, string deviceId, string redirectUrl,
+    public async Task<(Guid userId, DateTime tokenExpiresAt)?> ObtainAccessToken(string usedState, string code, string deviceId, string redirectUrl,
         CancellationToken ct)
     {
-        return Task.FromResult(new AuthResponse("", "", "", TimeSpan.FromHours(1), 666, [] ));
+        var returnUri = new Uri(redirectUrl);
+        var vkAppId = _configurationsProvider.GetVkAppId();
+        var state = _securityStringProvider.GenerateRandomString(StateLength);
+
+        var codeVerifier = _securityStringProvider.GetCodeVerifier(usedState);
+        if (string.IsNullOrEmpty(codeVerifier))
+        {
+            return null;
+        }
+
+        var authRequest = new AuthRequest(code, codeVerifier, vkAppId, deviceId, returnUri, state);
+
+        var authResponse = await _vkIdClient.ExchangeForAccessToken(authRequest, ct);
+
+        var user = new User(authResponse.UserId,
+            authResponse.AccessToken,
+            authResponse.RefreshToken,
+            authResponse.IdToken,
+            DateTime.UtcNow.Add(authResponse.ExpiresIn));
+        
+        _userCacheService.SaveUser(user);
+
+        return (user.Id, user.TokenExpiresAt);
     }
 }

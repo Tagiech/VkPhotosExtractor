@@ -7,6 +7,7 @@ using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Cache;
 using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Cache.Auth;
+using VkPhotosExtractor.Cache.Users;
 using VkPhotosExtractor.Integration.VkClient;
 using VkPhotosExtractor.Web.Configs;
 using VkPhotosExtractor.Web.Middlewares;
@@ -93,6 +94,7 @@ public static class Program
         services.AddSingleton<IConfigurationsProvider, ConfigurationsProvider>();
 
         services.AddSingleton<ISecurityStringCacheService, SecurityStringCacheService>();
+        services.AddSingleton<IUserCacheService, UserCacheService>();
         
         services.AddSingleton<ISecurityStringProvider, SecurityStringProvider>();
         services.AddSingleton<IAuthService, AuthService>();
