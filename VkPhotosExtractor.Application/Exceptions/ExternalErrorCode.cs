@@ -7,6 +7,7 @@ public enum ExternalErrorCode
     VkApiUnauthorized,
     VkApiUnavailable,
     
+    VkIdBadGateway,
     VkIdUnavailable,
     VkIdAccessDenied,
     VkIdInvalidToken,

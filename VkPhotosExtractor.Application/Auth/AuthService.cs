@@ -1,6 +1,7 @@
 using VkPhotosExtractor.Application.Auth.Models;
 using VkPhotosExtractor.Application.Cache;
 using VkPhotosExtractor.Application.Configurations;
+using VkPhotosExtractor.Application.Exceptions;
 
 namespace VkPhotosExtractor.Application.Auth;
 
@@ -88,5 +89,37 @@ public class AuthService : IAuthService
         _userCacheService.CreateOrUpdate(user);
 
         return true;
+    }
+
+    public async Task Logout(Guid userId, CancellationToken ct)
+    {
+        var vkAppId = _configurationsProvider.GetVkAppId();
+        var user = _userCacheService.TryGetUser(userId);
+        if (user is null)
+        {
+            throw new InnerApplicationException("User not found", InnerErrorCode.BadRequest, 400);
+        }
+
+        var revokeStatus = await _vkIdClient.RevokeAccessToken(user.AccessToken,
+            vkAppId,
+            ct);
+        if (!revokeStatus)
+        {
+            throw new ExternalApplicationException("Failed to revoke access token, try again later",
+                ExternalErrorCode.VkIdBadGateway,
+                502);
+        }
+
+        var logoutStatus = await _vkIdClient.Logout(user.AccessToken,
+            vkAppId,
+            ct);
+        if (!logoutStatus)
+        {
+            throw new ExternalApplicationException("Failed to logout, try again later",
+                ExternalErrorCode.VkIdBadGateway,
+                502);
+        }
+        
+        _userCacheService.InvalidateUser(user.Id);
     }
 }

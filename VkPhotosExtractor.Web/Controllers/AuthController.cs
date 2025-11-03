@@ -73,14 +73,19 @@ public class AuthController : ControllerBase
         return Ok();
     }
 
-    // Пример защищённого эндпоинта
     [Authorize]
-    [HttpGet("me")]
-    public IActionResult Me()
+    [HttpGet("logout")]
+    public async Task<IActionResult> Logout(CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var deviceId = User.FindFirstValue("device_id");
-        return Ok(new { user_id = userId, device_id = deviceId });
+        var userClaim = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (string.IsNullOrEmpty(userClaim) || !Guid.TryParse(userClaim, out var userId))
+        {
+            return Unauthorized("Invalid user ID in token");
+        }
+
+        await _authService.Logout(userId, ct);
+
+        return Ok();
     }
     
     private void CreateJwtToken(string userId, DateTime expiresAt)

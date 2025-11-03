@@ -10,4 +10,6 @@ public interface IAuthService
         CancellationToken ct);
 
     Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct);
+    
+    Task Logout(Guid userId, CancellationToken ct);
 }

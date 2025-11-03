@@ -4,4 +4,5 @@ public enum InnerErrorCode
 {
     InvalidCallbackCode,
     NetworkError,
+    BadRequest
 }
