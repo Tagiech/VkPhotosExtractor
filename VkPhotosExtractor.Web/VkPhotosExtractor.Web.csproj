@@ -1,14 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.10" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.20"/>
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.10" />
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.10" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\VkPhotosExtractor.Application\VkPhotosExtractor.Application.csproj" />
+      <ProjectReference Include="..\VkPhotosExtractor.Cache\VkPhotosExtractor.Cache.csproj" />
+      <ProjectReference Include="..\VkPhotosExtractor.Integration\VkPhotosExtractor.Integration.csproj" />
     </ItemGroup>
 
 </Project>
