@@ -8,4 +8,6 @@ public interface IAuthService
     Task<(Guid userId, DateTime tokenExpiresAt)?> ObtainAccessToken(string usedState, string code, string deviceId,
         string redirectUrl,
         CancellationToken ct);
+
+    Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct);
 }

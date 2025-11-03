@@ -22,9 +22,10 @@ public class UserCacheService : IUserCacheService
         });
     }
 
-    public bool TryGetUser(Guid userId, out User? user)
+    public User? TryGetUser(Guid userId)
     {
-        return _memoryCache.TryGetValue(CachePrefix + userId, out user);
+        var userExists = _memoryCache.TryGetValue(CachePrefix + userId, out User? user);
+        return !userExists ? null : user;
     }
 
     public void InvalidateUser(Guid userId)

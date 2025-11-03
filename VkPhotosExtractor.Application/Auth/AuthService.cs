@@ -54,6 +54,7 @@ public class AuthService : IAuthService
         var authResponse = await _vkIdClient.ExchangeForAccessToken(authRequest, ct);
 
         var user = new User(authResponse.UserId,
+            deviceId,
             authResponse.AccessToken,
             authResponse.RefreshToken,
             authResponse.IdToken,
@@ -63,5 +64,29 @@ public class AuthService : IAuthService
         _securityStringProvider.ClearStateAndCodeVerifier(usedState);
 
         return (user.Id, user.TokenExpiresAt);
+    }
+
+    public async Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct)
+    {
+        var user = _userCacheService.TryGetUser(userId);
+        if (user is null)
+        {
+            return false;
+        }
+
+        var state = _securityStringProvider.GenerateRandomString(StateLength);
+
+        var refreshRequest = new RefreshTokenRequest(user.RefreshToken,
+            user.ExternalId,
+            user.DeviceId,
+            state);
+        var refreshResponse = await _vkIdClient.RefreshAccessToken(refreshRequest, ct);
+
+        user.Update(refreshResponse.AccessToken,
+            refreshResponse.RefreshToken,
+            DateTime.UtcNow.Add(refreshResponse.ExpiresIn));
+        _userCacheService.CreateOrUpdate(user);
+
+        return true;
     }
 }

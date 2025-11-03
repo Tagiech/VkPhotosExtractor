@@ -5,6 +5,6 @@ namespace VkPhotosExtractor.Application.Cache;
 public interface IUserCacheService
 {
     void CreateOrUpdate(User user);
-    bool TryGetUser(Guid userId, out User? user);
+    User? TryGetUser(Guid userId);
     void InvalidateUser(Guid userId);
 }
