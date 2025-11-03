@@ -22,7 +22,7 @@ public static class Program
         builder.Services.AddAppSettings(builder.Configuration);
 
         var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
-        if (jwtConfig?.Key is null)
+        if (jwtConfig?.Key is null || jwtConfig.Audience is null || jwtConfig.Issuer is null)
         {
             throw new ArgumentNullException(nameof(jwtConfig), "JWT configuration section is missing or invalid.");
         }

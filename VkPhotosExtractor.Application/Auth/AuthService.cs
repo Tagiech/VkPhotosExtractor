@@ -69,6 +69,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct)
     {
+        var vkAppId = _configurationsProvider.GetVkAppId();
         var user = _userCacheService.TryGetUser(userId);
         if (user is null)
         {
@@ -78,7 +79,7 @@ public class AuthService : IAuthService
         var state = _securityStringProvider.GenerateRandomString(StateLength);
 
         var refreshRequest = new RefreshTokenRequest(user.RefreshToken,
-            user.ExternalId,
+            vkAppId,
             user.DeviceId,
             state);
         var refreshResponse = await _vkIdClient.RefreshAccessToken(refreshRequest, ct);

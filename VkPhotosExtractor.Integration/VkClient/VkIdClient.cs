@@ -52,7 +52,7 @@ public class VkIdClient : IVkIdClient
             new KeyValuePair<string, string>("redirect_uri", request.RedirectUri.ToString()),
             new KeyValuePair<string, string>("state", request.State)
         };
-        var requestContent = new FormUrlEncodedContent(parameters);
+        using var requestContent = new FormUrlEncodedContent(parameters);
 
         var response = await TryPostRequest(TokenEndpoint, requestContent, ct);
         
@@ -78,7 +78,7 @@ public class VkIdClient : IVkIdClient
             new KeyValuePair<string, string>("device_id", request.DeviceId),
             new KeyValuePair<string, string>("state", request.State)
         };
-        var requestContent = new FormUrlEncodedContent(parameters);
+        using var requestContent = new FormUrlEncodedContent(parameters);
 
         var response = await TryPostRequest(TokenEndpoint, requestContent, ct);
 
@@ -102,7 +102,7 @@ public class VkIdClient : IVkIdClient
             new KeyValuePair<string, string>("access_token", accessToken),
             new KeyValuePair<string, string>("client_id", clientId.ToString())
         };
-        var requestContent = new FormUrlEncodedContent(parameters);
+        using var requestContent = new FormUrlEncodedContent(parameters);
 
         var response = await TryPostRequest(RevokeTokenEndpoint, requestContent, ct);
         
@@ -124,7 +124,7 @@ public class VkIdClient : IVkIdClient
             new KeyValuePair<string, string>("access_token", accessToken),
             new KeyValuePair<string, string>("client_id", clientId.ToString())
         };
-        var requestContent = new FormUrlEncodedContent(parameters);
+        using var requestContent = new FormUrlEncodedContent(parameters);
 
         var response = await TryPostRequest(LogoutEndpoint, requestContent, ct);
 
@@ -154,13 +154,6 @@ public class VkIdClient : IVkIdClient
                 500,
                 innerException: e);
         }
-        catch (Exception ex)
-        {
-            throw new InnerApplicationException("Unexpected network error while connecting to VK ID",
-                InnerErrorCode.NetworkError,
-                500,
-                innerException: ex);
-        }
 
         return response;
     }
@@ -172,7 +165,7 @@ public class VkIdClient : IVkIdClient
         {
             result = JsonSerializer.Deserialize<T>(content);
         }
-        catch
+        catch (Exception ex) when (ex is ArgumentNullException or JsonException)
         {
             throw new ExternalApplicationException("Failed to deserialize VK response",
                 ExternalErrorCode.VkIdUnexpectedResponse,
