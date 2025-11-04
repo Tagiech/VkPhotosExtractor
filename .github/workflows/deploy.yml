@@ -32,5 +32,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/VkPhotosExtractor:latest
-            ghcr.io/${{ github.repository_owner }}/VkPhotosExtractor:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/vk-photos-extractor:latest
+            ghcr.io/${{ github.repository_owner }}/vk-photos-extractor:${{ github.sha }}
