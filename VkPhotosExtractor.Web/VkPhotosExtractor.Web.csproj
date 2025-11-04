@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +20,12 @@
       <ProjectReference Include="..\VkPhotosExtractor.Application\VkPhotosExtractor.Application.csproj" />
       <ProjectReference Include="..\VkPhotosExtractor.Cache\VkPhotosExtractor.Cache.csproj" />
       <ProjectReference Include="..\VkPhotosExtractor.Integration\VkPhotosExtractor.Integration.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>
