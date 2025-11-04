@@ -32,4 +32,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/vk-photos-extractor:${{ github.sha }}
+            ghcr.io/tagiech/vk-photos-extractor:${{ github.sha }}
