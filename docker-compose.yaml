@@ -1,0 +1,16 @@
+services:
+  vk-photo-extractor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vk-photo-extractor
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:5105
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - VkConfig__AppId=${VK_CLIENT_ID}
+    ports:
+      - "5105:5105"
