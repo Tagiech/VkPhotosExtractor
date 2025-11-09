@@ -61,3 +61,18 @@ jobs:
             
       - name: Add summary
         run: echo "vk-photos-extractor:${{ env.SHORT_SHA }}" >> $GITHUB_STEP_SUMMARY
+
+  cleanup:
+    name: Cleanup old images
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+        packages: write
+    steps:
+      - name: Cleanup old images
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: "vk-photos-extractor"
+          package-type: "container"
+          min-versions-to-keep: 5
+          token: ${{ secrets.GITHUB_TOKEN }}
