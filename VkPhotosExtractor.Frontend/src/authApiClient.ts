@@ -1,8 +1,13 @@
 const BASE_URL = `${import.meta.env.VITE_API_URL}Auth/`;
 
 export interface AuthParamsResponse{
-    authUri: string;
+    vkAppId: number;
+    returnUri: string;
+    state: string;
+    codeChallenge: string;
+    authRequestUri: string;
 }
+
 export async function apiGetAuthUri(): Promise<AuthParamsResponse> {
     const response = await fetch(`${BASE_URL}params`, {
         method: 'GET',

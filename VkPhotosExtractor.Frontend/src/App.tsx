@@ -1,17 +1,17 @@
 import {useEffect, useState} from 'react'
-import { VkLoginButton } from './components/VkLoginButton'
-import { apiGetAuthUri } from "./authApiClient.ts";
+import { VkLoginButton } from 'src/components/VkLoginButton'
+import {apiGetAuthUri, type AuthParamsResponse } from "src/authApiClient.ts";
 import './App.css'
 
 export default function App() {
-    const [authUri, setAuthUri] = useState<string | null>(null);
+    const [authParams, setAuthParams] = useState<AuthParamsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {
         async function loadAuthUri(){
             try{
-                const data = await apiGetAuthUri();
-                setAuthUri(data.authUri);
+                const authParamsResponse = await apiGetAuthUri();
+                setAuthParams(authParamsResponse);
             } catch (e){
                 console.error("Failed to fetch auth URI:", e);
             } finally {
@@ -23,8 +23,8 @@ export default function App() {
     }, [])
 
     function handleLogin() {
-        if (!authUri) return;
-        window.location.href = authUri;
+        if (!authParams) return;
+        window.location.href = authParams.authRequestUri;
     }
 
     if (loading) {
@@ -36,8 +36,13 @@ export default function App() {
             <h1>VK Photos Extractor</h1>
             <p>Загрузчик альбомов и изображений из VK</p>
             
-            {authUri && (
-                <VkLoginButton onClick={handleLogin}/>
+            {authParams && (
+                <VkLoginButton
+                    onClick={handleLogin}
+                    ClientId={ authParams.vkAppId }
+                    RedirectUrl={ authParams.returnUri }
+                    State={ authParams.state }
+                    CodeChallenge={ authParams.codeChallenge}/>
             )}
         </div>
     );
