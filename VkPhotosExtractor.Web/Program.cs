@@ -41,9 +41,9 @@ public static class Program
             app.UseSwaggerUI();
         }
         app.UseForwardedHeaders();
-        app.UseCors("CorsPolicy");
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<JwtCookieMiddleware>();
+        app.UseCors("CorsPolicy");
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -63,7 +63,7 @@ public static class Program
         var jwtConfig = configuration.GetSection("Jwt").Get<JwtConfig>();
         if (jwtConfig?.Key is null || jwtConfig.Audience is null || jwtConfig.Issuer is null)
         {
-            throw new ArgumentNullException(nameof(jwtConfig), "JWT configuration section is missing or invalid.");
+            throw new InvalidOperationException("JWT configuration section is missing or invalid.");
         }
         services
             .AddAuthentication(options =>
@@ -95,7 +95,7 @@ public static class Program
             .Get<string[]>();
         if (allowedOrigins is null || allowedOrigins.Length == 0)
         {
-            throw new ArgumentNullException(nameof(allowedOrigins), "CORS configuration section is missing or invalid.");
+            throw new InvalidOperationException( "CORS configuration section is missing or invalid.");
         }
         services.AddCors(options =>
         {
