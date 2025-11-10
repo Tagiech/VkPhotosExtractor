@@ -26,7 +26,6 @@ public static class Program
         builder.Services.ConfigureForwardedHeaders();
         builder.Services.AddAuthorization();
         builder.Services.AddVkIdHttpClient();
-            
         
         builder.Services.AddMemoryCache();
         builder.Services.AddServices();
