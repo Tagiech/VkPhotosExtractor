@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using VkPhotosExtractor.Application;
@@ -21,12 +22,49 @@ public static class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddAppSettings(builder.Configuration);
 
-        var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
+        builder.Services.AddJwtAuthentication(builder.Configuration);
+        builder.Services.ConfigureForwardedHeaders();
+        builder.Services.AddAuthorization();
+        builder.Services.AddVkIdHttpClient();
+            
+        
+        builder.Services.AddMemoryCache();
+        builder.Services.AddServices();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+        builder.Services.AddControllers();
+
+        var app = builder.Build();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+        app.UseForwardedHeaders();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<JwtCookieMiddleware>();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+    }
+    
+    private static void AddAppSettings(this IServiceCollection services, ConfigurationManager configuration)
+    {
+        services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
+        services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
+    }
+    
+    private static void AddJwtAuthentication(this IServiceCollection services, ConfigurationManager configuration)
+    {
+        var jwtConfig = configuration.GetSection("Jwt").Get<JwtConfig>();
         if (jwtConfig?.Key is null || jwtConfig.Audience is null || jwtConfig.Issuer is null)
         {
             throw new ArgumentNullException(nameof(jwtConfig), "JWT configuration section is missing or invalid.");
         }
-        builder.Services
+        services
             .AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,46 +85,33 @@ public static class Program
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Key))
                 };
             });
+    }
 
-        builder.Services.AddAuthorization();
-        builder.Services.AddHttpClient("vkid", c =>
+    private static void ConfigureForwardedHeaders(this IServiceCollection services)
+    {
+        services.Configure<ForwardedHeadersOptions>(options =>
         {
-            c.BaseAddress = new Uri("https://id.vk.ru/");
-            c.DefaultRequestHeaders.Add("Accept", "application/json");
-        })
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor |
+                ForwardedHeaders.XForwardedProto |
+                ForwardedHeaders.XForwardedHost;
+
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+    }
+    
+    private static void AddVkIdHttpClient(this IServiceCollection services)
+    {
+        services.AddHttpClient("vkid", c =>
+            {
+                c.BaseAddress = new Uri("https://id.vk.ru/");
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
+            })
             .AddPolicyHandler(Policy
                 .Handle<HttpRequestException>()
                 .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
                 .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-            
-        
-        builder.Services.AddMemoryCache();
-        builder.Services.AddServices();
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-        builder.Services.AddControllers();
-
-        var app = builder.Build();
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-        app.UseHttpsRedirection();
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
-        app.UseMiddleware<JwtCookieMiddleware>();
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapControllers();
-
-        app.Run();
-    }
-
-    private static void AddAppSettings(this IServiceCollection services, ConfigurationManager configuration)
-    {
-        services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
-        services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
     }
 
     private static void AddServices(this IServiceCollection services)
