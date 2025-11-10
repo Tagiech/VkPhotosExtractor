@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-backend:
     name: Build backend
     runs-on: ubuntu-latest
 
@@ -14,10 +14,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0'
+          
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: nuget-
 
       - name: Restore dependencies
         run: dotnet restore VkPhotosExtractor.sln
@@ -25,6 +32,30 @@ jobs:
       - name: Build
         run: dotnet build VkPhotosExtractor.sln --configuration Release --no-restore
 
-      # Запускаем тесты (потом добавим)
-      # - name: Run tests
-      #   run: dotnet test --configuration Release --no-build
+  build-frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ./VkPhotosExtractor.Frontend/node_modules
+          key: npm-${{ hashFiles('VkPhotosExtractor.Frontend/package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Install dependencies
+        working-directory: ./VkPhotosExtractor.Frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./VkPhotosExtractor.Frontend
+        run: npm run build
