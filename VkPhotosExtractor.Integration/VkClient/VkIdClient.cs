@@ -28,7 +28,7 @@ public class VkIdClient : IVkIdClient
     }
 
 
-    public string CreateVkAuthRequestUri(int vkAppId, string state, string codeChallenge, string returnUri)
+    public StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string returnUri)
     {
         var builder = new StringBuilder();
 
@@ -41,7 +41,7 @@ public class VkIdClient : IVkIdClient
         builder.Append($"&code_challenge={codeChallenge}");
         builder.Append("&code_challenge_method=S256");
 
-        return builder.ToString();
+        return new StartAuthResponse(vkAppId, returnUri, state, codeChallenge, builder.ToString());
     }
 
     public async Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct)
