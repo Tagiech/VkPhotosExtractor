@@ -23,6 +23,7 @@ public static class Program
         builder.Services.AddAppSettings(builder.Configuration);
 
         builder.Services.AddJwtAuthentication(builder.Configuration);
+        builder.Services.AddCorsPolicy(builder.Configuration);
         builder.Services.ConfigureForwardedHeaders();
         builder.Services.AddAuthorization();
         builder.Services.AddVkIdHttpClient();
@@ -40,6 +41,7 @@ public static class Program
             app.UseSwaggerUI();
         }
         app.UseForwardedHeaders();
+        app.UseCors("CorsPolicy");
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<JwtCookieMiddleware>();
         app.UseAuthentication();
@@ -49,7 +51,7 @@ public static class Program
 
         app.Run();
     }
-    
+
     private static void AddAppSettings(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
@@ -84,6 +86,27 @@ public static class Program
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Key))
                 };
             });
+    }
+    
+    private static void AddCorsPolicy(this IServiceCollection services, ConfigurationManager configuration)
+    {
+        var allowedOrigins = configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>();
+        if (allowedOrigins is null || allowedOrigins.Length == 0)
+        {
+            throw new ArgumentNullException(nameof(allowedOrigins), "CORS configuration section is missing or invalid.");
+        }
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
     }
 
     private static void ConfigureForwardedHeaders(this IServiceCollection services)
