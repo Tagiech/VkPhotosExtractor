@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Web.Controllers.Models;
+using VkPhotosExtractor.Web.Controllers.Models.ViewModels;
 
 namespace VkPhotosExtractor.Web.Controllers;
 
@@ -24,16 +25,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("params")]
-    public IActionResult GetAuthUri()
+    public IActionResult GetAuthParams()
     {
         var redirectUrl = Url.Action("AuthCallback", "Auth", null, Request.Scheme, Request.Host.ToString());
         if (redirectUrl is null)
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
-        var vkAuthRequest = _authService.CreateVkAuthRequest(redirectUrl);
+        var vkAuthUri = _authService.CreateVkAuthUri(redirectUrl);
 
-        return Ok(vkAuthRequest);
+        return Ok(new AuthParamsViewModel{AuthUri = vkAuthUri});
     }
 
     [HttpGet("callback")]
