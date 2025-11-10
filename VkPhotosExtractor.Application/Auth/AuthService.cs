@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         _userCacheService = userCacheService;
     }
 
-    public string CreateVkAuthRequest(string redirectUrl)
+    public string CreateVkAuthUri(string redirectUrl)
     {
         var returnUri = Uri.EscapeDataString(redirectUrl);
 
