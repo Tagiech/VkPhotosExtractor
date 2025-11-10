@@ -23,15 +23,14 @@ public class AuthService : IAuthService
         _userCacheService = userCacheService;
     }
 
-    public StartAuthResponse CreateVkAuthRequest(string redirectUrl)
+    public string CreateVkAuthRequest(string redirectUrl)
     {
-        var returnUri = new Uri(redirectUrl);
+        var returnUri = Uri.EscapeDataString(redirectUrl);
+
         var vkAppId = _configurationsProvider.GetVkAppId();
         var (state, codeChallenge) = _securityStringProvider.GenerateSecurityStrings(StateLength, PkceLength);
 
-        var startAuthRequest = new StartAuthRequest(vkAppId, state, codeChallenge, returnUri);
-        
-        var startAuthResponse = _vkIdClient.CreateVkAuthRequest(startAuthRequest);
+        var startAuthResponse = _vkIdClient.CreateVkAuthRequestUri(vkAppId, state, codeChallenge, returnUri);
 
         return startAuthResponse;
 

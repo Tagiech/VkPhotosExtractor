@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth.Models;
@@ -27,17 +28,20 @@ public class VkIdClient : IVkIdClient
     }
 
 
-    public StartAuthResponse CreateVkAuthRequest(StartAuthRequest request)
+    public string CreateVkAuthRequestUri(int vkAppId, string state, string codeChallenge, string returnUri)
     {
-        return new StartAuthResponse(VkIdBaseUrl,
-            VkAuthEndpoint,
-            "code",
-            request.VkAppId,
-            request.CodeChallenge,
-            "S256",
-            request.ReturnUri,
-            request.State,
-            ["vkid.personal_info"]);
+        var builder = new StringBuilder();
+
+        builder.Append(VkIdBaseUrl);
+        builder.Append(VkAuthEndpoint);
+        builder.Append("?response_type=code");
+        builder.Append($"&client_id={vkAppId}");
+        builder.Append($"&redirect_uri={returnUri}");
+        builder.Append($"&state={state}");
+        builder.Append($"&code_challenge={codeChallenge}");
+        builder.Append("&code_challenge_method=S256");
+
+        return builder.ToString();
     }
 
     public async Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct)
