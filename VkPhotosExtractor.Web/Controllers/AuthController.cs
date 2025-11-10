@@ -32,9 +32,18 @@ public class AuthController : ControllerBase
         {
             return StatusCode(500, "Failed to generate redirect URL");
         }
-        var vkAuthUri = _authService.CreateVkAuthUri(redirectUrl);
+        var vkAuthParams = _authService.GetVkAuthParams(redirectUrl);
 
-        return Ok(new AuthParamsViewModel{AuthUri = vkAuthUri});
+        var viewModel = new AuthParamsViewModel
+        {
+            VkAppId = vkAuthParams.VkAppId,
+            ReturnUri = vkAuthParams.ReturnUri,
+            State = vkAuthParams.State,
+            CodeChallenge = vkAuthParams.CodeChallenge,
+            AuthRequestUri = vkAuthParams.AuthRequestUri
+        };
+
+        return Ok(viewModel);
     }
 
     [HttpGet("callback")]
