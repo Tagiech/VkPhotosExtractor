@@ -56,6 +56,7 @@ public static class Program
     {
         services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
         services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
+        services.Configure<HostsConfig>(configuration.GetSection("Hosts"));
     }
     
     private static void AddJwtAuthentication(this IServiceCollection services, ConfigurationManager configuration)
