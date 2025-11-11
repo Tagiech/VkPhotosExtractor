@@ -4,10 +4,10 @@ import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+    plugins: [react()], 
     resolve:{
-      alias: {
-          'src': path.resolve(__dirname, 'src'),
-      },
+        alias: {
+            'src': path.resolve(__dirname, 'src'),
+        },
     },
 });

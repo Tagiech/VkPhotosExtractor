@@ -13,11 +13,16 @@ export function VkLoginButton(props: Props) {
     const [sdkReady, setSdkReady] = useState(false);
 
     useEffect(() => {
+        const maxRetries = 50;
+        let retries = 0;
         const checkSDK = () => {
             if (window.VKIDSDK) {
                 setSdkReady(true);
-            } else {
+            } else if (retries < maxRetries) {
+                retries++;
                 setTimeout(checkSDK, 100);
+            } else {
+                console.error("VKIDSDK failed to load after maximum retries.");
             }
         };
         checkSDK();
@@ -33,7 +38,7 @@ export function VkLoginButton(props: Props) {
             codeChallenge: props.CodeChallenge,
             scope: 'email phone',
         });
-    }, [sdkReady]);
+    }, [sdkReady, props.ClientId, props.RedirectUrl, props.State, props.CodeChallenge]);
 
     return (
         <div onClick={props.onClick}>
