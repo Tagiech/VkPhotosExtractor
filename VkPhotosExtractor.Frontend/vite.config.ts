@@ -10,4 +10,13 @@ export default defineConfig({
             'src': path.resolve(__dirname, 'src'),
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                entryFileNames: `app.[hash].js`,
+                chunkFileNames: `chunks/[name].[hash].js`,
+                assetFileNames: `assets/[name].[hash][extname]`,
+            }
+        }
+    }
 });
