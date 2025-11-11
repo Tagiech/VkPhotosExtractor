@@ -8,11 +8,15 @@ public class ConfigurationsProvider : IConfigurationsProvider
 {
     private readonly IOptions<VkConfig> _vkConfig;
     private readonly IOptions<JwtConfig> _jwtConfig;
+    private readonly IOptions<HostsConfig> _hostsConfig;
 
-    public ConfigurationsProvider(IOptions<VkConfig> vkConfig, IOptions<JwtConfig> jwtConfig)
+    public ConfigurationsProvider(IOptions<VkConfig> vkConfig,
+        IOptions<JwtConfig> jwtConfig,
+        IOptions<HostsConfig> hostsConfig)
     {
         _vkConfig = vkConfig;
         _jwtConfig = jwtConfig;
+        _hostsConfig = hostsConfig;
     }
 
     public int GetVkAppId()
@@ -56,5 +60,49 @@ public class ConfigurationsProvider : IConfigurationsProvider
         }
         
         return jwtAudience;
+    }
+    
+    public string GetBackendHost()
+    {
+        var backendHost = _hostsConfig.Value.Backend;
+        if (string.IsNullOrEmpty(backendHost))
+        {
+            throw new ArgumentNullException(nameof(backendHost), "Backend Host is not configured properly.");
+        }
+        
+        return RemoveTrailingSlash(backendHost);
+    }
+
+    public string GetFrontendHost()
+    {
+        var frontendHost = _hostsConfig.Value.Frontend;
+        if (string.IsNullOrEmpty(frontendHost))
+        {
+            throw new ArgumentNullException(nameof(frontendHost), "Frontend Host is not configured properly.");
+        }
+        
+        return RemoveTrailingSlash(frontendHost);
+    }
+    
+    public string GetVkIdHost()
+    {
+        var vkIdHost = _hostsConfig.Value.VkId;
+        if (string.IsNullOrEmpty(vkIdHost))
+        {
+            throw new ArgumentNullException(nameof(vkIdHost), "VK ID Host is not configured properly.");
+        }
+
+        return RemoveTrailingSlash(vkIdHost);
+    }
+
+    private static string RemoveTrailingSlash(string url)
+    {
+        if (url[^1] == '/')
+        {
+            //TODO: add warning log here about removing trailing slash from config
+            return url[..^1];
+        }
+
+        return url;
     }
 }
