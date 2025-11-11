@@ -7,9 +7,7 @@
     if (override) {
         console.log("[OVERRIDE] Using remote module:", override);
         script.src = override;
-    } else {
-        script.src = "/src/main.tsx";
-    }
+    } 
 
     document.head.appendChild(script);
 })();
