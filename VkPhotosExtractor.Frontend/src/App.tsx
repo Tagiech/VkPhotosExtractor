@@ -24,7 +24,7 @@ export default function App() {
 
     function handleLogin() {
         if (!authParams) return;
-        window.location.href = authParams.authRequestUri;
+        location.assign(authParams.authRequestUri);
     }
 
     if (loading) {
@@ -39,10 +39,7 @@ export default function App() {
             {authParams && (
                 <VkLoginButton
                     onClick={handleLogin}
-                    ClientId={ authParams.vkAppId }
-                    RedirectUrl={ authParams.returnUri }
-                    State={ authParams.state }
-                    CodeChallenge={ authParams.codeChallenge}/>
+                />
             )}
         </div>
     );
