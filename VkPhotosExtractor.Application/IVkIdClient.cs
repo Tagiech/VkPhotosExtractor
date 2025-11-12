@@ -4,7 +4,7 @@ namespace VkPhotosExtractor.Application;
 
 public interface IVkIdClient
 {
-    StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string returnUri);
+    StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string redirectUrl);
     Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct);
 
     Task<RefreshTokenResponse> RefreshAccessToken(RefreshTokenRequest request, CancellationToken ct);

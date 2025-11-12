@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth.Models;
+using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Application.Exceptions;
 using VkPhotosExtractor.Integration.VkClient.Dto;
 using VkPhotosExtractor.Integration.VkClient.Dto.Helpers;
@@ -10,38 +11,39 @@ namespace VkPhotosExtractor.Integration.VkClient;
 
 public class VkIdClient : IVkIdClient
 {
-    private const string VkIdBaseUrl = "https://id.vk.ru/";
-
-    private const string VkAuthEndpoint = "authorize";
-    private const string TokenEndpoint = "oauth2/auth";
-    private const string RevokeTokenEndpoint = "oauth2/revoke";
-    private const string LogoutEndpoint = "oauth2/logout";
+    private const string VkAuthEndpoint = "/authorize";
+    private const string TokenEndpoint = "/oauth2/auth";
+    private const string RevokeTokenEndpoint = "/oauth2/revoke";
+    private const string LogoutEndpoint = "/oauth2/logout";
 
     private const string AuthGrantType = "authorization_code";
     private const string RefreshGrantType = "refresh_token";
     
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfigurationsProvider _configurationsProvider;
 
-    public VkIdClient(IHttpClientFactory httpClientFactory)
+    public VkIdClient(IHttpClientFactory httpClientFactory, IConfigurationsProvider configurationsProvider)
     {
         _httpClientFactory = httpClientFactory;
+        _configurationsProvider = configurationsProvider;
     }
 
 
-    public StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string returnUri)
+    public StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string redirectUrl)
     {
         var builder = new StringBuilder();
 
-        builder.Append(VkIdBaseUrl);
+        builder.Append(_configurationsProvider.GetVkIdHost());
         builder.Append(VkAuthEndpoint);
         builder.Append("?response_type=code");
         builder.Append($"&client_id={vkAppId}");
-        builder.Append($"&redirect_uri={returnUri}");
+        builder.Append($"&redirect_uri={redirectUrl}");
         builder.Append($"&state={state}");
         builder.Append($"&code_challenge={codeChallenge}");
         builder.Append("&code_challenge_method=S256");
+        builder.Append("&scope=groups");
 
-        return new StartAuthResponse(vkAppId, returnUri, state, codeChallenge, builder.ToString());
+        return new StartAuthResponse(vkAppId, redirectUrl, state, codeChallenge, builder.ToString());
     }
 
     public async Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct)

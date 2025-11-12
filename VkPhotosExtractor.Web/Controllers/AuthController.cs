@@ -27,17 +27,12 @@ public class AuthController : ControllerBase
     [HttpGet("params")]
     public IActionResult GetAuthParams()
     {
-        var redirectUrl = Url.Action("AuthCallback", "Auth", null, Request.Scheme, Request.Host.ToString());
-        if (redirectUrl is null)
-        {
-            return StatusCode(500, "Failed to generate redirect URL");
-        }
-        var vkAuthParams = _authService.GetVkAuthParams(redirectUrl);
+        var vkAuthParams = _authService.GetVkAuthParams();
 
         var viewModel = new AuthParamsViewModel
         {
             VkAppId = vkAuthParams.VkAppId,
-            ReturnUri = vkAuthParams.ReturnUri,
+            RedirectUrl = vkAuthParams.FrontendRedirectUrl,
             State = vkAuthParams.State,
             CodeChallenge = vkAuthParams.CodeChallenge,
             AuthRequestUri = vkAuthParams.AuthRequestUri
