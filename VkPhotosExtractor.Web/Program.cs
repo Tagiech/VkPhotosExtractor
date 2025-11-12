@@ -41,6 +41,7 @@ public static class Program
             app.UseSwaggerUI();
         }
         app.UseForwardedHeaders();
+        app.UseMiddleware<CsrfMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<JwtCookieMiddleware>();
         app.UseCors("CorsPolicy");

@@ -18,11 +18,15 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IConfigurationsProvider _configurationsProvider;
+    private readonly ISecurityStringProvider _securityStringProvider;
     
-    public AuthController(IAuthService authService, IConfigurationsProvider configurationsProvider)
+    public AuthController(IAuthService authService,
+        IConfigurationsProvider configurationsProvider,
+        ISecurityStringProvider securityStringProvider)
     {
         _authService = authService;
         _configurationsProvider = configurationsProvider;
+        _securityStringProvider = securityStringProvider;
     }
 
     [HttpGet("params")]
@@ -45,9 +49,9 @@ public class AuthController : ControllerBase
     [HttpGet("callback")]
     public async Task<IActionResult> AuthCallback([FromQuery] AuthCallbackRequest request, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(request.Code) 
-            || string.IsNullOrEmpty(request.State) 
-            || string.IsNullOrEmpty(request.DeviceId))
+        if (string.IsNullOrWhiteSpace(request.Code) 
+            || string.IsNullOrWhiteSpace(request.State) 
+            || string.IsNullOrWhiteSpace(request.DeviceId))
         {
             return BadRequest("Missing required query parameters");
         }
@@ -138,10 +142,17 @@ public class AuthController : ControllerBase
         );
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
         Response.Cookies.Append("jwt", tokenString, new CookieOptions
         {
             HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = expiresAt
+        });
+        
+        var csrfToken = _securityStringProvider.GenerateRandomString(32);
+        Response.Cookies.Append("CSRF-Token", csrfToken, new CookieOptions
+        {
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = expiresAt
