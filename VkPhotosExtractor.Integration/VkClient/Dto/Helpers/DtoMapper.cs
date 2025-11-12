@@ -1,3 +1,4 @@
+using System.Globalization;
 using VkPhotosExtractor.Application.Auth.Models;
 using VkPhotosExtractor.Application.Exceptions;
 
@@ -38,5 +39,25 @@ public static class DtoMapper
             dto.UserId,
             string.IsNullOrEmpty(dto.Scope) ? [] : dto.Scope.Split(" ")
         );
+    }
+    
+    public static UserInfo ToUserInfo(this VkUserInfoDto dto, Guid userId)
+    {
+        var externalUserId = int.TryParse(dto.UserId, out var userIdInt) ? userIdInt : 0;
+        var birthday = DateTime.UnixEpoch;
+        if (!string.IsNullOrWhiteSpace(dto.Birthday))
+        {
+            DateTime.TryParseExact(dto.Birthday, "dd.MM.yyyy", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out birthday);
+
+        }
+
+        return new UserInfo(userId,
+            externalUserId,
+            dto.FirstName,
+            dto.LastName,
+            dto.PhotoUrl ?? "",
+            (Sex)dto.Sex,
+            birthday);
     }
 }

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -17,27 +18,26 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IConfigurationsProvider _configurationsProvider;
+    private readonly ISecurityStringProvider _securityStringProvider;
     
-    public AuthController(IAuthService authService, IConfigurationsProvider configurationsProvider)
+    public AuthController(IAuthService authService,
+        IConfigurationsProvider configurationsProvider,
+        ISecurityStringProvider securityStringProvider)
     {
         _authService = authService;
         _configurationsProvider = configurationsProvider;
+        _securityStringProvider = securityStringProvider;
     }
 
     [HttpGet("params")]
     public IActionResult GetAuthParams()
     {
-        var redirectUrl = Url.Action("AuthCallback", "Auth", null, Request.Scheme, Request.Host.ToString());
-        if (redirectUrl is null)
-        {
-            return StatusCode(500, "Failed to generate redirect URL");
-        }
-        var vkAuthParams = _authService.GetVkAuthParams(redirectUrl);
+        var vkAuthParams = _authService.GetVkAuthParams();
 
         var viewModel = new AuthParamsViewModel
         {
             VkAppId = vkAuthParams.VkAppId,
-            ReturnUri = vkAuthParams.ReturnUri,
+            RedirectUrl = vkAuthParams.FrontendRedirectUrl,
             State = vkAuthParams.State,
             CodeChallenge = vkAuthParams.CodeChallenge,
             AuthRequestUri = vkAuthParams.AuthRequestUri
@@ -49,9 +49,9 @@ public class AuthController : ControllerBase
     [HttpGet("callback")]
     public async Task<IActionResult> AuthCallback([FromQuery] AuthCallbackRequest request, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(request.Code) 
-            || string.IsNullOrEmpty(request.State) 
-            || string.IsNullOrEmpty(request.DeviceId))
+        if (string.IsNullOrWhiteSpace(request.Code) 
+            || string.IsNullOrWhiteSpace(request.State) 
+            || string.IsNullOrWhiteSpace(request.DeviceId))
         {
             return BadRequest("Missing required query parameters");
         }
@@ -87,15 +87,38 @@ public class AuthController : ControllerBase
     [HttpGet("logout")]
     public async Task<IActionResult> Logout(CancellationToken ct = default)
     {
-        var userClaim = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        if (string.IsNullOrEmpty(userClaim) || !Guid.TryParse(userClaim, out var userId))
+        var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userClaim) || !Guid.TryParse(userClaim, out var userId))
         {
             return Unauthorized("Invalid user ID in token");
         }
 
         await _authService.Logout(userId, ct);
+        Response.Cookies.Delete("jwt");
+        Response.Cookies.Delete("CSRF-Token");
 
         return Ok();
+    }
+
+    [Authorize]
+    [HttpGet("userinfo")]
+    public async Task<IActionResult> GetUserInfo(CancellationToken ct = default)
+    {
+        var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userClaim) || !Guid.TryParse(userClaim, out var userId))
+        {
+            return Unauthorized("Invalid user ID in token");
+        }
+        
+        var userInfo = await _authService.GetUserInfo(userId, ct);
+        var viewModel = new UserInfoViewModel
+        {
+            FirstName = userInfo.FirstName,
+            LastName = userInfo.LastName,
+            PhotoUrl = userInfo.PhotoUrl
+        };
+        
+        return Ok(viewModel);
     }
     
     private void CreateJwtToken(string userId, DateTime expiresAt)
@@ -103,7 +126,7 @@ public class AuthController : ControllerBase
         var utcNowOffset = DateTimeOffset.UtcNow;
         Claim[] claims =
         [
-            new(JwtRegisteredClaimNames.Sub, userId),
+            new(ClaimTypes.NameIdentifier, userId),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, utcNowOffset.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         ];
@@ -120,10 +143,18 @@ public class AuthController : ControllerBase
         );
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
         Response.Cookies.Append("jwt", tokenString, new CookieOptions
         {
             HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = expiresAt
+        });
+        
+        var csrfToken = _securityStringProvider.GenerateRandomString(32);
+        Response.Cookies.Append("CSRF-Token", csrfToken, new CookieOptions
+        {
+            HttpOnly = false,
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = expiresAt

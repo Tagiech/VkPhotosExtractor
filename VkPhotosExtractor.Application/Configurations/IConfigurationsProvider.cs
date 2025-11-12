@@ -6,4 +6,7 @@ public interface IConfigurationsProvider
     string GetJwtKey();
     string GetJwtIssuer();
     string GetJwtAudience();
+    string GetBackendHost();
+    string GetFrontendHost();
+    string GetVkIdHost();
 }

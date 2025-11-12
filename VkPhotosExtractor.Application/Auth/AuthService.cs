@@ -1,3 +1,4 @@
+using System.Text;
 using VkPhotosExtractor.Application.Auth.Models;
 using VkPhotosExtractor.Application.Cache;
 using VkPhotosExtractor.Application.Configurations;
@@ -23,17 +24,15 @@ public class AuthService : IAuthService
         _userCacheService = userCacheService;
     }
 
-    public StartAuthResponse GetVkAuthParams(string redirectUrl)
+    public StartAuthResponse GetVkAuthParams()
     {
-        var returnUri = Uri.EscapeDataString(redirectUrl);
-
+        var redirectUrl = GetEncodedFrontendRedirectUrl();
         var vkAppId = _configurationsProvider.GetVkAppId();
         var (state, codeChallenge) = _securityStringProvider.GenerateSecurityStrings(StateLength, PkceLength);
 
-        var startAuthResponse = _vkIdClient.GetAuthParams(vkAppId, state, codeChallenge, returnUri);
+        var startAuthResponse = _vkIdClient.GetAuthParams(vkAppId, state, codeChallenge, redirectUrl);
 
         return startAuthResponse;
-
     }
 
     public async Task<(Guid userId, DateTime tokenExpiresAt)?> ObtainAccessToken(string usedState, string code, string deviceId, string redirectUrl,
@@ -121,5 +120,27 @@ public class AuthService : IAuthService
         }
         
         _userCacheService.InvalidateUser(user.Id);
+    }
+
+    public async Task<UserInfo> GetUserInfo(Guid userId, CancellationToken ct)
+    {
+        var user = _userCacheService.TryGetUser(userId);
+        if (user is null)
+        {
+            throw new InnerApplicationException("User not found", InnerErrorCode.BadRequest, 400);
+        }
+        var vkAppId = _configurationsProvider.GetVkAppId();
+        //TODO: use cache through policy here
+        var userInfo = await _vkIdClient.GetUserInfo(userId, user.AccessToken, vkAppId, ct);
+        
+        return userInfo;
+    }
+
+    private string GetEncodedFrontendRedirectUrl()
+    {
+        var redirectUrlBuilder = new StringBuilder(_configurationsProvider.GetFrontendHost());
+        redirectUrlBuilder.Append("/Auth/callback");
+        
+        return Uri.EscapeDataString(redirectUrlBuilder.ToString());
     }
 }

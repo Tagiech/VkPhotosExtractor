@@ -26,7 +26,7 @@ public static class Program
         builder.Services.AddCorsPolicy(builder.Configuration);
         builder.Services.ConfigureForwardedHeaders();
         builder.Services.AddAuthorization();
-        builder.Services.AddVkIdHttpClient();
+        builder.Services.AddVkIdHttpClient(builder.Configuration);
         
         builder.Services.AddMemoryCache();
         builder.Services.AddServices();
@@ -41,6 +41,7 @@ public static class Program
             app.UseSwaggerUI();
         }
         app.UseForwardedHeaders();
+        app.UseMiddleware<CsrfMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<JwtCookieMiddleware>();
         app.UseCors("CorsPolicy");
@@ -56,12 +57,15 @@ public static class Program
     {
         services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
         services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
+        services.Configure<HostsConfig>(configuration.GetSection("Hosts"));
     }
     
     private static void AddJwtAuthentication(this IServiceCollection services, ConfigurationManager configuration)
     {
         var jwtConfig = configuration.GetSection("Jwt").Get<JwtConfig>();
-        if (jwtConfig?.Key is null || jwtConfig.Audience is null || jwtConfig.Issuer is null)
+        if (string.IsNullOrWhiteSpace(jwtConfig?.Key) ||
+            string.IsNullOrWhiteSpace(jwtConfig.Audience) ||
+            string.IsNullOrWhiteSpace(jwtConfig.Issuer))
         {
             throw new InvalidOperationException("JWT configuration section is missing or invalid.");
         }
@@ -123,11 +127,17 @@ public static class Program
         });
     }
     
-    private static void AddVkIdHttpClient(this IServiceCollection services)
+    private static void AddVkIdHttpClient(this IServiceCollection services, ConfigurationManager configuration)
     {
+        var vkIdHost = configuration.GetSection("Hosts").Get<HostsConfig>()?.VkId;
+        if (string.IsNullOrWhiteSpace(vkIdHost))
+        {
+            throw new InvalidOperationException("Hosts configuration VkId section is missing or invalid.");
+        }        
+
         services.AddHttpClient("vkid", c =>
             {
-                c.BaseAddress = new Uri("https://id.vk.ru/");
+                c.BaseAddress = new Uri(vkIdHost);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
             })
             .AddPolicyHandler(Policy

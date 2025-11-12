@@ -1,15 +1,17 @@
-const BASE_URL = `${import.meta.env.VITE_API_URL}Auth/`;
+import type { User } from "src/models/User.ts";
+
+const BASE_URL = `${import.meta.env.VITE_API_URL}`;
 
 export interface AuthParamsResponse{
     vkAppId: number;
-    returnUri: string;
+    redirectUrl: string;
     state: string;
     codeChallenge: string;
     authRequestUri: string;
 }
 
 export async function apiGetAuthUri(): Promise<AuthParamsResponse> {
-    const response = await fetch(`${BASE_URL}params`, {
+    const response = await fetch(`${BASE_URL}/Auth/params`, {
         method: 'GET',
         credentials: 'include',
     });
@@ -19,4 +21,28 @@ export async function apiGetAuthUri(): Promise<AuthParamsResponse> {
     }
     
     return (await response.json()) as AuthParamsResponse;
+}
+
+export async function apiCallback(query: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/Auth/callback${query}`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Error during auth callback: ${response.statusText}`);
+    }
+}
+
+export async function apiGetUser(): Promise<User>{
+    const response = await fetch(`${BASE_URL}/Auth/userinfo`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Error fetching user info: ${response.statusText}`);
+    }
+    
+    return (await response.json()) as User;
 }

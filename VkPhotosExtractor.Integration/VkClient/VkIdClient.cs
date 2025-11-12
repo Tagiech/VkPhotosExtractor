@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth.Models;
+using VkPhotosExtractor.Application.Configurations;
 using VkPhotosExtractor.Application.Exceptions;
 using VkPhotosExtractor.Integration.VkClient.Dto;
 using VkPhotosExtractor.Integration.VkClient.Dto.Helpers;
@@ -10,38 +11,40 @@ namespace VkPhotosExtractor.Integration.VkClient;
 
 public class VkIdClient : IVkIdClient
 {
-    private const string VkIdBaseUrl = "https://id.vk.ru/";
-
-    private const string VkAuthEndpoint = "authorize";
-    private const string TokenEndpoint = "oauth2/auth";
-    private const string RevokeTokenEndpoint = "oauth2/revoke";
-    private const string LogoutEndpoint = "oauth2/logout";
+    private const string VkAuthEndpoint = "/authorize";
+    private const string TokenEndpoint = "/oauth2/auth";
+    private const string RevokeTokenEndpoint = "/oauth2/revoke";
+    private const string LogoutEndpoint = "/oauth2/logout";
+    private const string UserInfoEndpoint = "/oauth2/user_info";
 
     private const string AuthGrantType = "authorization_code";
     private const string RefreshGrantType = "refresh_token";
     
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfigurationsProvider _configurationsProvider;
 
-    public VkIdClient(IHttpClientFactory httpClientFactory)
+    public VkIdClient(IHttpClientFactory httpClientFactory, IConfigurationsProvider configurationsProvider)
     {
         _httpClientFactory = httpClientFactory;
+        _configurationsProvider = configurationsProvider;
     }
 
 
-    public StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string returnUri)
+    public StartAuthResponse GetAuthParams(int vkAppId, string state, string codeChallenge, string redirectUrl)
     {
         var builder = new StringBuilder();
 
-        builder.Append(VkIdBaseUrl);
+        builder.Append(_configurationsProvider.GetVkIdHost());
         builder.Append(VkAuthEndpoint);
         builder.Append("?response_type=code");
         builder.Append($"&client_id={vkAppId}");
-        builder.Append($"&redirect_uri={returnUri}");
+        builder.Append($"&redirect_uri={redirectUrl}");
         builder.Append($"&state={state}");
         builder.Append($"&code_challenge={codeChallenge}");
         builder.Append("&code_challenge_method=S256");
+        builder.Append("&scope=groups");
 
-        return new StartAuthResponse(vkAppId, returnUri, state, codeChallenge, builder.ToString());
+        return new StartAuthResponse(vkAppId, redirectUrl, state, codeChallenge, builder.ToString());
     }
 
     public async Task<AuthResponse> ExchangeForAccessToken(AuthRequest request, CancellationToken ct)
@@ -141,6 +144,27 @@ public class VkIdClient : IVkIdClient
         var logoutResult = TryDeserialize<VkSuccessResponseDto>(content, response);
 
         return logoutResult.Response == 1;
+    }
+
+    public async Task<UserInfo> GetUserInfo(Guid userId, string accessToken, int clientId, CancellationToken ct)
+    {
+        var parameters = new[]
+        {
+            new KeyValuePair<string, string>("access_token", accessToken),
+            new KeyValuePair<string, string>("client_id", clientId.ToString())
+        };
+        using var requestContent = new FormUrlEncodedContent(parameters);
+        
+        var response = await TryPostRequest(UserInfoEndpoint, requestContent, ct);
+        var content = await response.Content.ReadAsStringAsync(ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            ThrowResponseError(content, response);
+        }
+        
+        var userInfoResult = TryDeserialize<VkUserInfoDto>(content, response);
+
+        return userInfoResult.ToUserInfo(userId);
     }
     
     private async Task<HttpResponseMessage> TryPostRequest(string endpoint, FormUrlEncodedContent content, CancellationToken ct)

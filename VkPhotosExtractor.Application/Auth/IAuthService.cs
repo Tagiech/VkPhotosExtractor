@@ -4,7 +4,7 @@ namespace VkPhotosExtractor.Application.Auth;
 
 public interface IAuthService
 {
-    StartAuthResponse GetVkAuthParams(string redirectUrl);
+    StartAuthResponse GetVkAuthParams();
     Task<(Guid userId, DateTime tokenExpiresAt)?> ObtainAccessToken(string usedState, string code, string deviceId,
         string redirectUrl,
         CancellationToken ct);
@@ -12,4 +12,6 @@ public interface IAuthService
     Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct);
     
     Task Logout(Guid userId, CancellationToken ct);
+
+    Task<UserInfo> GetUserInfo(Guid userId, CancellationToken ct);
 }
