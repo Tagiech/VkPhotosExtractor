@@ -114,7 +114,7 @@ public class AuthController : ControllerBase
         {
             FirstName = userInfo.FirstName,
             LastName = userInfo.LastName,
-            PhotoUrl = userInfo.PhotoUrl!
+            PhotoUrl = userInfo.PhotoUrl
         };
         
         return Ok(viewModel);

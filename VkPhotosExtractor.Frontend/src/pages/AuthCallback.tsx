@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiCallback } from "src/authApiClient.ts";
-import {useEffect, useState} from "react";
+import { type FC, useEffect, useState } from "react";
 
-export function AuthCallback(){
+export const AuthCallback: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     
