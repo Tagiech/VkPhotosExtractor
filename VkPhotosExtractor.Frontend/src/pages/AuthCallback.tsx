@@ -27,8 +27,8 @@ export const AuthCallback: FC = () => {
         if (message === "") return;
         
         if (timer === 0) {
-            if (authSuccess){
-                navigate('/userinfo') //TODO: create userinfo page
+            if (authSuccess) {
+                navigate('/userinfo')
             } else {
                 navigate('/');
             }

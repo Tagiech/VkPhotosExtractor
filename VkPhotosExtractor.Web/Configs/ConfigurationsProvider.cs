@@ -32,7 +32,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetJwtKey()
     {
         var jwtKey =  _jwtConfig.Value.Key;
-        if (string.IsNullOrEmpty(jwtKey))
+        if (string.IsNullOrWhiteSpace(jwtKey))
         {
             throw new ArgumentNullException(nameof(jwtKey), "JWT Key is not configured properly.");
         }
@@ -43,7 +43,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetJwtIssuer()
     {
         var jwtIssuer = _jwtConfig.Value.Issuer;
-        if (string.IsNullOrEmpty(jwtIssuer))
+        if (string.IsNullOrWhiteSpace(jwtIssuer))
         {
             throw new ArgumentNullException(nameof(jwtIssuer), "JWT Issuer is not configured properly.");
         }
@@ -54,7 +54,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetJwtAudience()
     {
         var jwtAudience = _jwtConfig.Value.Audience;
-        if (string.IsNullOrEmpty(jwtAudience))
+        if (string.IsNullOrWhiteSpace(jwtAudience))
         {
             throw new ArgumentNullException(nameof(jwtAudience), "JWT Audience is not configured properly.");
         }
@@ -65,7 +65,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetBackendHost()
     {
         var backendHost = _hostsConfig.Value.Backend;
-        if (string.IsNullOrEmpty(backendHost))
+        if (string.IsNullOrWhiteSpace(backendHost))
         {
             throw new ArgumentNullException(nameof(backendHost), "Backend Host is not configured properly.");
         }
@@ -76,7 +76,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetFrontendHost()
     {
         var frontendHost = _hostsConfig.Value.Frontend;
-        if (string.IsNullOrEmpty(frontendHost))
+        if (string.IsNullOrWhiteSpace(frontendHost))
         {
             throw new ArgumentNullException(nameof(frontendHost), "Frontend Host is not configured properly.");
         }
@@ -87,7 +87,7 @@ public class ConfigurationsProvider : IConfigurationsProvider
     public string GetVkIdHost()
     {
         var vkIdHost = _hostsConfig.Value.VkId;
-        if (string.IsNullOrEmpty(vkIdHost))
+        if (string.IsNullOrWhiteSpace(vkIdHost))
         {
             throw new ArgumentNullException(nameof(vkIdHost), "VK ID Host is not configured properly.");
         }

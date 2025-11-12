@@ -94,7 +94,8 @@ public class AuthController : ControllerBase
         }
 
         await _authService.Logout(userId, ct);
-        await HttpContext.SignOutAsync();
+        Response.Cookies.Delete("jwt");
+        Response.Cookies.Delete("CSRF-Token");
 
         return Ok();
     }
@@ -153,6 +154,7 @@ public class AuthController : ControllerBase
         var csrfToken = _securityStringProvider.GenerateRandomString(32);
         Response.Cookies.Append("CSRF-Token", csrfToken, new CookieOptions
         {
+            HttpOnly = false,
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = expiresAt

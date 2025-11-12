@@ -9,10 +9,10 @@ export const UserInfo: FC = () => {
             .then(setUser)
             .catch((error: Error) => {
                 console.error("Failed to fetch user info:", error);
-            })
+            });
     }, []);
     
-    if (!user){
+    if (!user) {
         return (
             <div>
                 Loading user info...
@@ -42,9 +42,17 @@ export const UserInfo: FC = () => {
 }
 
 const updatePhotoSize = (url: string, size: number): string => {
-    const parsedUrl = new URL(url);
-    parsedUrl.searchParams.delete("cs");
-    parsedUrl.searchParams.append("cs", `${size}x${size}`);
-    
-    return parsedUrl.toString();
+    if (!url) return url;
+
+    try {
+        const parsedUrl = new URL(url);
+        parsedUrl.searchParams.delete("cs");
+        parsedUrl.searchParams.append("cs", `${size}x${size}`);
+
+        return parsedUrl.toString();
+    } catch (error) {
+        console.error(error);
+
+        return url;
+    }
 }

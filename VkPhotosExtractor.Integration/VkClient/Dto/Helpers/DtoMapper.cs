@@ -44,7 +44,13 @@ public static class DtoMapper
     public static UserInfo ToUserInfo(this VkUserInfoDto dto, Guid userId)
     {
         var externalUserId = int.TryParse(dto.UserId, out var userIdInt) ? userIdInt : 0;
-        var birthday = DateTime.ParseExact(dto.Birthday, "dd.MM.yyyy", CultureInfo.InvariantCulture);
+        var birthday = DateTime.UnixEpoch;
+        if (!string.IsNullOrWhiteSpace(dto.Birthday))
+        {
+            DateTime.TryParseExact(dto.Birthday, "dd.MM.yyyy", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out birthday);
+
+        }
 
         return new UserInfo(userId,
             externalUserId,
