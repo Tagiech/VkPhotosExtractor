@@ -130,6 +130,7 @@ public class AuthService : IAuthService
             throw new InnerApplicationException("User not found", InnerErrorCode.BadRequest, 400);
         }
         var vkAppId = _configurationsProvider.GetVkAppId();
+        //TODO: use cache through policy here
         var userInfo = await _vkIdClient.GetUserInfo(userId, user.AccessToken, vkAppId, ct);
         
         return userInfo;
