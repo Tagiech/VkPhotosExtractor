@@ -122,6 +122,19 @@ public class AuthService : IAuthService
         _userCacheService.InvalidateUser(user.Id);
     }
 
+    public async Task<UserInfo> GetUserInfo(Guid userId, CancellationToken ct)
+    {
+        var user = _userCacheService.TryGetUser(userId);
+        if (user is null)
+        {
+            throw new InnerApplicationException("User not found", InnerErrorCode.BadRequest, 400);
+        }
+        var vkAppId = _configurationsProvider.GetVkAppId();
+        var userInfo = await _vkIdClient.GetUserInfo(userId, user.AccessToken, vkAppId, ct);
+        
+        return userInfo;
+    }
+
     private string GetEncodedFrontendRedirectUrl()
     {
         var redirectUrlBuilder = new StringBuilder(_configurationsProvider.GetFrontendHost());

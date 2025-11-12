@@ -16,4 +16,6 @@ public interface IVkIdClient
     Task<bool> Logout(string accessToken,
         int clientId,
         CancellationToken ct);
+
+    Task<UserInfo> GetUserInfo(Guid userId, string accessToken, int clientId, CancellationToken ct);
 }

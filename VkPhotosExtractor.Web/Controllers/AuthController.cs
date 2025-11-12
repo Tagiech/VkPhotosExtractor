@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -82,15 +83,37 @@ public class AuthController : ControllerBase
     [HttpGet("logout")]
     public async Task<IActionResult> Logout(CancellationToken ct = default)
     {
-        var userClaim = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        if (string.IsNullOrEmpty(userClaim) || !Guid.TryParse(userClaim, out var userId))
+        var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userClaim) || !Guid.TryParse(userClaim, out var userId))
         {
             return Unauthorized("Invalid user ID in token");
         }
 
         await _authService.Logout(userId, ct);
+        await HttpContext.SignOutAsync();
 
         return Ok();
+    }
+
+    [Authorize]
+    [HttpGet("userinfo")]
+    public async Task<IActionResult> GetUserInfo(CancellationToken ct = default)
+    {
+        var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userClaim) || !Guid.TryParse(userClaim, out var userId))
+        {
+            return Unauthorized("Invalid user ID in token");
+        }
+        
+        var userInfo = await _authService.GetUserInfo(userId, ct);
+        var viewModel = new UserInfoViewModel
+        {
+            FirstName = userInfo.FirstName,
+            LastName = userInfo.LastName,
+            PhotoUrl = userInfo.PhotoUrl!
+        };
+        
+        return Ok(viewModel);
     }
     
     private void CreateJwtToken(string userId, DateTime expiresAt)
@@ -98,7 +121,7 @@ public class AuthController : ControllerBase
         var utcNowOffset = DateTimeOffset.UtcNow;
         Claim[] claims =
         [
-            new(JwtRegisteredClaimNames.Sub, userId),
+            new(ClaimTypes.NameIdentifier, userId),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, utcNowOffset.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         ];

@@ -12,4 +12,6 @@ public interface IAuthService
     Task<bool> TryRefreshAccessToken(Guid userId, CancellationToken ct);
     
     Task Logout(Guid userId, CancellationToken ct);
+
+    Task<UserInfo> GetUserInfo(Guid userId, CancellationToken ct);
 }

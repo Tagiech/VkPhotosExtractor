@@ -28,7 +28,7 @@ export function AuthCallback(){
         
         if (timer === 0) {
             if (authSuccess){
-                navigate('/me') //:TODO create /me route
+                navigate('/userinfo') //TODO: create userinfo page
             } else {
                 navigate('/');
             }
