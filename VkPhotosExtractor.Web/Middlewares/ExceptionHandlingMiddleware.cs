@@ -30,7 +30,7 @@ public class ExceptionHandlingMiddleware
         var traceId = Guid.NewGuid().ToString("N");
         context.Response.ContentType = "application/json";
 
-        _logger.LogInformation("""
+        _logger.LogError("""
                                Handling exception with
                                TraceId: {@TraceId}
                                Exception message: {@ExceptionMessage}

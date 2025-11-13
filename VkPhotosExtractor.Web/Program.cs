@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Serilog;
+using Serilog.Formatting.Json;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Cache;
@@ -65,15 +66,11 @@ public static class Program
     
     private static void AddLogger(this WebApplicationBuilder builder)
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
-
         builder.Host.UseSerilog((_, loggerConfiguration) =>
         {
             loggerConfiguration.MinimumLevel.Information();
             loggerConfiguration.Enrich.FromLogContext();
-            loggerConfiguration.WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter());
+            loggerConfiguration.WriteTo.Console(new JsonFormatter());
         });
     }
     
