@@ -1,6 +1,5 @@
 import type { User } from "src/models/User.ts";
 
-const BASE_URL = `${import.meta.env.VITE_API_URL}`;
 
 export interface AuthParamsResponse{
     vkAppId: number;
@@ -11,6 +10,7 @@ export interface AuthParamsResponse{
 }
 
 export async function apiGetAuthUri(): Promise<AuthParamsResponse> {
+    const BASE_URL = window.APP_CONFIG.apiUrl;
     const response = await fetch(`${BASE_URL}/Auth/params`, {
         method: 'GET',
         credentials: 'include',
@@ -24,6 +24,7 @@ export async function apiGetAuthUri(): Promise<AuthParamsResponse> {
 }
 
 export async function apiCallback(query: string): Promise<void> {
+    const BASE_URL = window.APP_CONFIG.apiUrl;
     const response = await fetch(`${BASE_URL}/Auth/callback${query}`, {
         method: 'GET',
         credentials: 'include',
@@ -35,6 +36,7 @@ export async function apiCallback(query: string): Promise<void> {
 }
 
 export async function apiGetUser(): Promise<User>{
+    const BASE_URL = window.APP_CONFIG.apiUrl;
     const response = await fetch(`${BASE_URL}/Auth/userinfo`, {
         method: 'GET',
         credentials: 'include',
