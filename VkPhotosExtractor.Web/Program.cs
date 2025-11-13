@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
+using Serilog;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth;
 using VkPhotosExtractor.Application.Cache;
@@ -28,6 +29,7 @@ public static class Program
         builder.Services.AddAuthorization();
         builder.Services.AddVkIdHttpClient(builder.Configuration);
         
+        builder.AddLogger();
         builder.Services.AddMemoryCache();
         builder.Services.AddServices();
         builder.Services.AddEndpointsApiExplorer();
@@ -35,6 +37,7 @@ public static class Program
         builder.Services.AddControllers();
 
         var app = builder.Build();
+        app.UseSerilogRequestLogging();
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -58,6 +61,20 @@ public static class Program
         services.Configure<VkConfig>(configuration.GetSection("VkConfig"));
         services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
         services.Configure<HostsConfig>(configuration.GetSection("Hosts"));
+    }
+    
+    private static void AddLogger(this WebApplicationBuilder builder)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
+        builder.Host.UseSerilog((_, loggerConfiguration) =>
+        {
+            loggerConfiguration.MinimumLevel.Information();
+            loggerConfiguration.Enrich.FromLogContext();
+            loggerConfiguration.WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter());
+        });
     }
     
     private static void AddJwtAuthentication(this IServiceCollection services, ConfigurationManager configuration)

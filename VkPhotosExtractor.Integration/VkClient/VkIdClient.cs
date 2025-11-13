@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using VkPhotosExtractor.Application;
 using VkPhotosExtractor.Application.Auth.Models;
 using VkPhotosExtractor.Application.Configurations;
@@ -22,11 +23,15 @@ public class VkIdClient : IVkIdClient
     
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfigurationsProvider _configurationsProvider;
+    private readonly ILogger<VkIdClient> _logger;
 
-    public VkIdClient(IHttpClientFactory httpClientFactory, IConfigurationsProvider configurationsProvider)
+    public VkIdClient(IHttpClientFactory httpClientFactory,
+        IConfigurationsProvider configurationsProvider,
+        ILogger<VkIdClient> logger)
     {
         _httpClientFactory = httpClientFactory;
         _configurationsProvider = configurationsProvider;
+        _logger = logger;
     }
 
 
@@ -164,7 +169,18 @@ public class VkIdClient : IVkIdClient
         
         var userInfoResult = TryDeserialize<VkUserInfoDto>(content, response);
 
-        return userInfoResult.ToUserInfo(userId);
+        var userInfo = userInfoResult.ToUserInfo(userId);
+
+        _logger.LogInformation("""
+                               Method: GetUserInfo
+                               got user info from VK ID:
+                               content: {@content}
+                               user info before deserialization: {@userInfoResult}
+                               user info: {@userInfo}
+                               """,
+            content, userInfoResult, userInfo);
+
+        return userInfo;
     }
     
     private async Task<HttpResponseMessage> TryPostRequest(string endpoint, FormUrlEncodedContent content, CancellationToken ct)
@@ -174,6 +190,13 @@ public class VkIdClient : IVkIdClient
         {
             using var client = _httpClientFactory.CreateClient("vkid");
             response = await client.PostAsync(endpoint, content, ct);
+            _logger.LogInformation("""
+                                   Posted a request to VK ID:
+                                   endpoint: {@endpoint}
+                                   content: {@content}
+                                   response: {@response}
+                                   """,
+                endpoint, content, response);
         }
         catch (HttpRequestException e)
         {
@@ -186,18 +209,29 @@ public class VkIdClient : IVkIdClient
         return response;
     }
     
-    private static T TryDeserialize<T>(string content, HttpResponseMessage response) where T : class
+    private T TryDeserialize<T>(string content, HttpResponseMessage response) where T : class
     {
-        T? result;
+        T? result = null;
         try
         {
             result = JsonSerializer.Deserialize<T>(content);
+
         }
         catch (Exception ex) when (ex is ArgumentNullException or JsonException)
         {
             throw new ExternalApplicationException("Failed to deserialize VK response",
                 ExternalErrorCode.VkIdUnexpectedResponse,
                 (int)response.StatusCode);
+        }
+        finally
+        {
+            _logger.LogInformation("""
+                                   Trying to deserialize VK response:
+                                   content: {@content}
+                                   response: {@response}
+                                   result: {@result}
+                                   """,
+                content, response, result);
         }
         
         if (result is null)
@@ -220,7 +254,7 @@ public class VkIdClient : IVkIdClient
         }
     }
     
-    private static void ThrowResponseError(string content, HttpResponseMessage response)
+    private void ThrowResponseError(string content, HttpResponseMessage response)
     {
         var errorResult = TryDeserialize<VkErrorResponseDto>(content, response);
         throw new ExternalApplicationException(

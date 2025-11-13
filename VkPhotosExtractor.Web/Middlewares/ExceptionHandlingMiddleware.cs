@@ -5,10 +5,12 @@ namespace VkPhotosExtractor.Web.Middlewares;
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -23,12 +25,18 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
+    private async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
         var traceId = Guid.NewGuid().ToString("N");
         context.Response.ContentType = "application/json";
 
-        //TODO: log the exception with traceId
+        _logger.LogInformation("""
+                               Handling exception with
+                               TraceId: {@TraceId}
+                               Exception message: {@ExceptionMessage}
+                               Stack trace: {@StackTrace}
+                               """,
+            traceId, ex.Message, ex.StackTrace);
         switch (ex)
         {
             case ApplicationException<InnerErrorCode> innerEx:
