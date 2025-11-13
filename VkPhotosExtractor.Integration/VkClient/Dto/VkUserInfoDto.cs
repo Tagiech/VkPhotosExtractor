@@ -10,7 +10,6 @@ public class VkUserInfoDto
     public VkUserDto User { get; set; } = null!;
 }
 
-
 [UsedImplicitly]
 public class VkUserDto
 {
