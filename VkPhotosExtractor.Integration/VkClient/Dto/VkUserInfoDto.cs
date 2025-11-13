@@ -6,6 +6,14 @@ namespace VkPhotosExtractor.Integration.VkClient.Dto;
 [UsedImplicitly]
 public class VkUserInfoDto
 {
+    [JsonPropertyName("user")]
+    public VkUserDto User { get; set; } = null!;
+}
+
+
+[UsedImplicitly]
+public class VkUserDto
+{
     [JsonPropertyName("user_id")]
     public string UserId { get; set; } = "";
     
