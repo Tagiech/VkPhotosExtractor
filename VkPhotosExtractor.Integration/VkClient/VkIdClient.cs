@@ -47,7 +47,7 @@ public class VkIdClient : IVkIdClient
         builder.Append($"&state={state}");
         builder.Append($"&code_challenge={codeChallenge}");
         builder.Append("&code_challenge_method=S256");
-        builder.Append("&scope=groups");
+        builder.Append("&scope=groups photos");
 
         return new StartAuthResponse(vkAppId, redirectUrl, state, codeChallenge, builder.ToString());
     }
